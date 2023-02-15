@@ -10,7 +10,6 @@
 	<a href="https://github.com/LordOfTrident/chol/pulls">
 		<img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/LordOfTrident/chol?color=4f79e4"/>
 	</a>
-	<img width="80%" src="res/thumbnail.png"/>
 	<br><br><br>
 </p>
 
