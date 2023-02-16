@@ -7,5 +7,5 @@
     "license": "MIT",
     "name": "chol",
     "run": "",
-    "sourceFolder": "source"
+    "sourceFolder": "."
 }
