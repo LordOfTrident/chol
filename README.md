@@ -1,5 +1,6 @@
-<h1 align="center">chol</h1>
-<p align="center">C header-only libraries</p>
+<p align="center">
+	<img width="300px" src="./res/logo.png">
+</p>
 <p align="center">
 	<a href="./LICENSE">
 		<img alt="License" src="https://img.shields.io/badge/license-MIT-blue?color=26d374"/>
