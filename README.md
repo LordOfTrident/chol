@@ -13,7 +13,7 @@
 	<br><br><br>
 </p>
 
-A collection of single-header [STB-style](https://github.com/nothings/stb) C libraries.
+A collection of header-only [STB-style](https://github.com/nothings/stb) C libraries.
 
 ## Table of contents
 * [Documentation](#documentation)
