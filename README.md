@@ -19,6 +19,8 @@ A collection of single-header [STB-style](https://github.com/nothings/stb) C lib
 * [Documentation](#documentation)
 * [Examples](#examples)
 * [Quickstart](#quickstart)
+  * [Git submodules](#git-submodules)
+  * [YPM](#ypm)
 * [Bugs](#bugs)
 
 ## Documentation
@@ -28,9 +30,17 @@ Each header file contains its documentation in the form of comments.
 Coming soon
 
 ## Quickstart
-Either copy this repository into your project, or add it as a submodule:
+Either copy this repository into your project, or you can use one of the following
+
+### Git submodules
 ```sh
 $ git submodule add https://github.com/LordOfTrident/chol
+```
+
+### YPM
+```sh
+$ ypm add https://github.com/LordOfTrident/chol
+$ ypm update
 ```
 
 ## Bugs
