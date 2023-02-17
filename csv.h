@@ -45,6 +45,14 @@ extern "C" {
  * 1.1.1: Fix has_prefix, has_suffix
  */
 
+#ifndef CONSTRUCT
+#	ifdef __cplusplus
+#		define CONSTRUCT(TYPE, ...) TYPE({__VA_ARGS__})
+#	else
+#		define CONSTRUCT(TYPE, ...) (TYPE){__VA_ARGS__}
+#	endif
+#endif
+
 typedef struct {
 	size_t      len;
 	const char *cstr;
@@ -53,7 +61,7 @@ typedef struct {
 #define SV_FMT     "%.*s"
 #define SV_ARG(SV) (int)(SV).len, (SV).cstr
 
-#define SV_NULL (sv_t){.cstr = NULL}
+#define SV_NULL CONSTRUCT(sv_t, 0, NULL)
 #define SV_NPOS (size_t)-1
 
 #define SV_WHITESPACES " \f\n\r\t\v"
@@ -86,7 +94,7 @@ typedef struct {
  *     String of whitespace characters.
  */
 
-sv_t sv_new( const char *cstr, size_t len) {return (sv_t){.len = len, .cstr = cstr};}
+sv_t sv_new( const char *cstr, size_t len) {return CONSTRUCT(sv_t, len, cstr);}
 sv_t sv_cstr(const char *cstr)             {return sv_new(cstr, strlen(cstr));}
 
 char sv_at(     sv_t sv, size_t idx) {return sv.cstr[idx];}

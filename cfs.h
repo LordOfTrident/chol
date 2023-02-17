@@ -42,7 +42,7 @@ extern "C" {
 #include <stdint.h>  /* int64_t */
 
 #define CFS_VERSION_MAJOR 1
-#define CFS_VERSION_MINOR 7
+#define CFS_VERSION_MINOR 8
 #define CFS_VERSION_PATCH 2
 
 /*
@@ -57,6 +57,7 @@ extern "C" {
  * 1.6.2: Rename fs_copy to fs_copy_file and fs_move to fs_move_file, make fs_copy_file remove
  *        the copy if it already exists and recopy
  * 1.7.2: Add fs_time
+ * 1.8.2: Add fs_is_path_d_or_dd
  */
 
 #ifndef WIN32
@@ -95,6 +96,24 @@ extern "C" {
 
 #	define PATH_SEP "\\"
 #else
+#	ifndef __USE_XOPEN_EXTENDED
+#		define __USE_XOPEN_EXTENDED
+#	endif
+
+#	ifdef _POSIX_C_SOURCE
+#		if _POSIX_C_SOURCE < 200112L
+#			undef  _POSIX_C_SOURCE
+#			define _POSIX_C_SOURCE 200112L
+#		endif
+#	endif
+
+#	ifdef _XOPEN_SOURCE
+#		if _XOPEN_SOURCE < 500
+#			undef  _XOPEN_SOURCE
+#			define _XOPEN_SOURCE 500
+#		endif
+#	endif
+
 #	include <unistd.h>
 #	include <dirent.h>
 #	include <fcntl.h>
@@ -185,6 +204,8 @@ const char *fs_basename(const char *path);
 const char *fs_ext(     const char *path);
 bool        fs_exists(  const char *path);
 
+bool fs_is_path_d_or_dd(const char *path);
+
 char *fs_remove_ext( const char *path);
 char *fs_replace_ext(const char *path, const char *new_ext);
 
@@ -209,6 +230,9 @@ int fs_read_link(const char *path, char *buf, size_t size, size_t *written);
  *
  * bool fs_exists(const char *path)
  *     Returns true if the 'path' exists, false otherwise.
+ *
+ * bool fs_is_path_d_or_dd(const char *path)
+ *     Return true if path basename is '..' or '.
  *
  * char *fs_remove_ext(const char *path)
  *     Removes the extension of 'path'. The returned string is allocated on the heap.
@@ -264,6 +288,21 @@ int fs_move_file(const char *path, const char *new_);
 		} \
 	} while (0)
 
+#define FOREACH_VISIBLE_IN_DIR(PATH, DIR_VAR, ENT_VAR, BODY, STATUS) \
+	do { \
+		fs_dir_t DIR_VAR; \
+		STATUS = fs_dir_open(&DIR_VAR, PATH); \
+		if (STATUS == 0) { \
+			fs_ent_t ENT_VAR; \
+			while (fs_dir_next(&DIR_VAR, &ENT_VAR) == 0) { \
+				if (fs_attr(ENT_VAR.name) & FS_HIDDEN) \
+					continue; \
+				BODY \
+			} \
+			fs_dir_close(&DIR_VAR); \
+		} \
+	} while (0)
+
 int fs_dir_open( fs_dir_t *d, const char *path);
 int fs_dir_close(fs_dir_t *d);
 int fs_dir_next( fs_dir_t *d, fs_ent_t *e);
@@ -273,6 +312,9 @@ int fs_dir_next( fs_dir_t *d, fs_ent_t *e);
  *     Loops through each element in directory 'PATH'. 'DIR_VAR' is the name of the directory
  *     variable, 'ENT_VAR' is the name of the directory entry variable and 'BODY' is the code to
  *     be run on each entry. 'STATUS' is the variable to write the status into (0 on success)
+ *
+ * FOREACH_VISIBLE_IN_DIR(PATH, DIR_VAR, ENT_VAR, BODY, STATUS)
+ *     Same as FOREACH_IN_DIR, except that this only loops through visible (not hidden) files.
  *
  * int fs_dir_open(fs_dir_t *d, const char *path)
  *     Opens directory 'path' into 'd'. Returns 0 on success.
@@ -299,6 +341,7 @@ extern "C" {
 char *fs_join_path(const char *base, ...) {
 	size_t len = strlen(base);
 
+	/* Get the length of the joined path */
 	va_list args;
 	va_start(args, base);
 	for (const char *next = va_arg(args, const char*);
@@ -308,6 +351,7 @@ char *fs_join_path(const char *base, ...) {
 	}
 	va_end(args);
 
+	/* Allocate memory and construct the path */
 	char *buf = (char*)malloc(len + 1);
 	if (buf == NULL)
 		return NULL;
@@ -335,6 +379,11 @@ bool fs_exists(const char *path) {
 #endif
 }
 
+bool fs_is_path_d_or_dd(const char *path) {
+	const char *basename = fs_basename(path);
+	return strcmp(basename, ".") == 0 || strcmp(basename, "..") == 0;
+}
+
 const char *fs_basename(const char *path) {
 	for (size_t i = strlen(path) - 1; i > 0; -- i) {
 		if (path[i] == '\\' || path[i] == '/')
@@ -351,13 +400,9 @@ const char *fs_ext(const char *path) {
 	return path;
 }
 
-#ifdef WIN32
-uint64_t fs_file_time_to_unix(FILETIME ft) {
-}
-#endif
-
 int fs_time(const char *path, int64_t *m, int64_t *a) {
 #ifdef WIN32
+	/* Macros for magic numbers */
 #	define _UNIX_TIME_START  0x019DB1DED53E8000
 #	define _TICKS_PER_SECOND 10000000
 
@@ -406,6 +451,7 @@ int fs_attr(const char *path) {
 #ifdef WIN32
 	WORD attrs = GetFileAttributesA(path);
 
+	/* Hidden files on Windows have the hidden attribute */
 	if (attrs & FILE_ATTRIBUTE_HIDDEN || strcmp(base, ".") == 0 || strcmp(base, "..") == 0)
 		attr |= FS_HIDDEN;
 	if (attrs & FILE_ATTRIBUTE_DIRECTORY)
@@ -417,6 +463,7 @@ int fs_attr(const char *path) {
 	if (stat(path, &s) != 0)
 		return FS_INVALID_ATTR;
 
+	/* Hidden files on Unix begin with a '.' */
 	if (base[0] == '.')
 		attr |= FS_HIDDEN;
 	if (S_ISDIR(s.st_mode))
@@ -443,6 +490,7 @@ char *fs_remove_ext(const char *path) {
 }
 
 char *fs_replace_ext(const char *path, const char *new_ext) {
+	/* Get the length of the path without extension */
 	size_t len = strlen(path);
 	for (size_t i = len - 1; i != (size_t)-1; -- i) {
 		if (path[i] == '.') {
@@ -524,12 +572,14 @@ int fs_copy_file(const char *path, const char *new_) {
 #ifdef WIN32
 	return !CopyFileA(path, new_, false)? -1 : 0;
 #else
+	/* Remove the previous copy if it exists */
 	if (fs_exists(new_)) {
 		if (fs_remove_file(new_) != 0)
 			return -1;
 	}
 
-	/* https://stackoverflow.com/questions/2180079/how-can-i-copy-a-file-on-unix-using-c */
+	/* Copy the content
+	   https://stackoverflow.com/questions/2180079/how-can-i-copy-a-file-on-unix-using-c */
 	int to, from;
 
 	from = open(path, O_RDONLY);
@@ -542,9 +592,9 @@ int fs_copy_file(const char *path, const char *new_) {
 		return -1;
 	}
 
-	char    buf[4096];
+	char    buf[4096]; /* Read buffer */
 	ssize_t read_;
-	while (read_ = read(from, buf, sizeof buf), read_ > 0) {
+	while (read_ = read(from, buf, sizeof(buf)), read_ > 0) {
 		char   *out_ptr = buf;
 		ssize_t written;
 
@@ -569,12 +619,12 @@ int fs_copy_file(const char *path, const char *new_) {
 	if (close(to) != 0)
 		return -1;
 
+	/* Copy the permissions */
 	struct stat s;
 	if (stat(path, &s) != 0)
 		return -1;
 
 	chmod(new_, s.st_mode);
-
 	return 0;
 #endif
 }
@@ -597,6 +647,7 @@ int fs_dir_open(fs_dir_t *d, const char *path) {
 	if (d->_handle == INVALID_HANDLE_VALUE)
 		return -1;
 
+	/* This is the first file read automatically on open */
 	d->_first = true;
 #else
 	d->_d = opendir(path);
@@ -626,6 +677,7 @@ int fs_dir_next(fs_dir_t *d, fs_ent_t *e) {
 	if (d->_first)
 		d->_first = false;
 	else {
+		/* Get the next file only if the current file wasnt read automatically */
 		if (FindNextFile(d->_handle, &d->_data) == 0)
 			return -1;
 	}
@@ -640,6 +692,7 @@ int fs_dir_next(fs_dir_t *d, fs_ent_t *e) {
 	e->name = e->_e->d_name;
 #endif
 
+	/* Construct the full file path to get the attributes */
 	char path[PATH_MAX] = {0};
 	strcpy(path, d->path);
 	strcat(path, "/");

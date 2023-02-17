@@ -22,15 +22,17 @@ extern "C" {
 
 #define COMMON_VERSION_MAJOR 1
 #define COMMON_VERSION_MINOR 0
-#define COMMON_VERSION_PATCH 0
+#define COMMON_VERSION_PATCH 2
 
 /*
  * 1.0.0: Common macros (like TODO, UNUSED, ARRAY_SIZE...) and malloc, realloc and free wrappers
+ * 1.0.1: Change FOREACH_IN_ARRAY iterator variable name from i to _i
+ * 1.0.2: Fix C++ errors
  */
 
-#define UNREACHABLE(MSG)      assert(0 && "Unreachable: "MSG)
-#define TODO(MSG)             assert(0 && "TODO: "MSG)
-#define FATAL_FUNC_FAIL(FUNC) assert(0 && FUNC"() fail")
+#define UNREACHABLE(MSG)      assert(0 && "Unreachable: " MSG)
+#define TODO(MSG)             assert(0 && "TODO: " MSG)
+#define FATAL_FUNC_FAIL(FUNC) assert(0 && FUNC "() fail")
 
 /*
  * These functions fail exit the program with assert.
@@ -59,11 +61,19 @@ extern "C" {
 
 #define FOREACH_IN_ARRAY(ARR, TYPE, SIZE, VAR, BODY) \
 	do { \
-		for (size_t i = 0; i < SIZE; ++ i) { \
-			TYPE *VAR = (ARR)[i]; \
+		for (size_t _i = 0; _i < SIZE; ++ _i) { \
+			TYPE *VAR = &(ARR)[_i]; \
 			BODY \
 		} \
 	} while (0)
+
+#ifndef CONSTRUCT
+#	ifdef __cplusplus
+#		define CONSTRUCT(TYPE, ...) TYPE({__VA_ARGS__})
+#	else
+#		define CONSTRUCT(TYPE, ...) (TYPE){__VA_ARGS__}
+#	endif
+#endif
 
 /*
  * UNUSED(VAR)
@@ -83,16 +93,30 @@ extern "C" {
  *         | FOREACH_IN_ARRAY(numbers, int, ARRAY_SIZE(numbers), number, {
  *         |     printf("%i\n", *number);
  *         | });
+ *
+ * CONSTRUCT(TYPE, ...)
+ *     Constructions a structure of type 'TYPE' with fields '...'. 'TYPE' has to be a typedef name,
+ *     so 'struct my_struct' is not allowed. Example of usage:
+ *         | typedef struct {
+ *         |     int first, second;
+ *         | } int_pair_t;
+ *         |
+ *         | int_pair_t new_int_pair(int first, int second) {
+ *         |     return CONSTRUCT(int_pair_t, first, second);
+ *         | }
+ *
+ *     This macro exists because C++ does not allow '(TYPE){...}' and C does not know about
+ *     'TYPE({...})'.
  */
 
-#define SALLOC(PTR, COUNT) \
-	(PTR = salloc(sizeof(*PTR), COUNT))
+#define SALLOC(PTR, TYPE, COUNT) \
+	(PTR = (TYPE*)salloc(sizeof(TYPE), COUNT))
 
 #define SREALLOC(PTR, COUNT) \
-	srealloc(&PTR, sizeof(*PTR), COUNT)
+	srealloc((void**)&PTR, sizeof(*PTR), COUNT)
 
 #define SFREE(PTR) \
-	sfree(&PTR)
+	sfree((void**)&PTR)
 
 /*
  * Macros SALLOC, SREALLOC and SFREE call functions salloc, srealloc and sfree respectively.
@@ -100,8 +124,8 @@ extern "C" {
  * SALLOC(PTR, COUNT)
  *     Allocates an array of size 'COUNT' into the pointer 'PTR'. Returns NULL on fail. Example:
  *         | int *numbers;
- *         | if (SALLOC(numbers, 5) == NULL)
- *         |     FATAL_FUNC_FAIL("salloc");
+ *         | if (SALLOC(numbers, int, 5) == NULL)
+ *         |     FATAL_FUNC_FAIL("SALLOC");
  *         | numbers[0] = 32;
  *
  * SREALLOC(PTR, COUNT)
@@ -109,7 +133,7 @@ extern "C" {
  *     points to the reallocated memory and 0 is returned. If it failed, 'PTR' is freed and set to
  *     NULL. Example:
  *         | if (SREALLOC(numbers, 2) != 0)
- *         |     FATAL_FUNC_FAIL("srealloc");
+ *         |     FATAL_FUNC_FAIL("SREALLOC");
  *
  * SFREE(PTR)
  *     Frees the memory pointer to by 'PTR' and sets 'PTR' to NULL. If 'PTR' is NULL, it fails and
@@ -128,7 +152,7 @@ int   sfree(void **ptr);
 
 #endif
 
-#ifdef COMMON_IMPLEMENTATION
+#ifdef CCOMMON_IMPLEMENTATION
 
 #ifdef __cplusplus
 extern "C" {
@@ -142,12 +166,12 @@ int srealloc(void **ptr, size_t memb_size, size_t count) {
 	if (*ptr == NULL)
 		return -1;
 
-	void *new = realloc(*ptr, memb_size * count);
-	if (new == NULL) {
+	void *new_ = realloc(*ptr, memb_size * count);
+	if (new_ == NULL) {
 		sfree(ptr);
 		return -1;
 	} else
-		*ptr = new;
+		*ptr = new_;
 
 	return 0;
 }
@@ -167,4 +191,3 @@ int sfree(void **ptr) {
 #endif
 
 #endif
-#ifndef

@@ -28,7 +28,18 @@ A collection of header-only [STB-style](https://github.com/nothings/stb) C libra
 Each header file contains its documentation in the form of comments.
 
 ## Examples
-Coming soon
+Examples for each library can be found in the [examples](./examples) folder.
+To build them, first bootstrap the builder with
+```sh
+$ cc build.c -o build
+```
+
+and then build
+```sh
+$ ./build
+```
+
+The binaries will be outputted into [bin](./bin).
 
 ## Quickstart
 Either copy this repository into your project, or you can use one of the following

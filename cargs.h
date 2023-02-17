@@ -49,19 +49,29 @@ extern "C" {
 
 #define CARGS_VERSION_MAJOR 1
 #define CARGS_VERSION_MINOR 2
-#define CARGS_VERSION_PATCH 1
+#define CARGS_VERSION_PATCH 3
 
 /*
  * 1.0.0: Parsing flags, returning stripped arguments
  * 1.0.1: Do not show default string flag value if its NULL
  * 1.1.1: Support C++
  * 1.2.1: Add FOREACH_IN_ARGS macro
+ * 1.2.2: Change FOREACH_IN_ARGS iterator variable name from i to _i
+ * 1.2.3: Fix get_flag_by_short_name and get_flag_by_long_name
  */
+
+#ifndef CONSTRUCT
+#	ifdef __cplusplus
+#		define CONSTRUCT(TYPE, ...) TYPE({__VA_ARGS__})
+#	else
+#		define CONSTRUCT(TYPE, ...) (TYPE){__VA_ARGS__}
+#	endif
+#endif
 
 #define FOREACH_IN_ARGS(ARGS, ARG_VAR, BODY) \
 	do { \
-		for (int i = 0; i < (ARGS).c; ++ i) { \
-			const char *ARG_VAR = (ARGS).v[i]; \
+		for (int _i = 0; _i < (ARGS).c; ++ _i) { \
+			const char *ARG_VAR = (ARGS).v[_i]; \
 			BODY \
 		} \
 	} while (0)
@@ -185,7 +195,7 @@ extern "C" {
 #endif
 
 args_t new_args(int argc, const char **argv) {
-	return (args_t){.c = argc, .v = argv, .base = (char**)argv};
+	return CONSTRUCT(args_t, argc, argv, (char**)argv);
 }
 
 bool arg_is_flag(const char *arg) {
@@ -258,6 +268,9 @@ static flag_t *get_flag_by_short_name(const char *short_name) {
 		return NULL;
 
 	for (size_t i = 0; i < flags_count; ++ i) {
+		if (flags[i].short_name == NULL)
+			continue;
+
 		if (strcmp(flags[i].short_name, short_name) == 0)
 			return &flags[i];
 	}
@@ -270,6 +283,9 @@ static flag_t *get_flag_by_long_name(const char *long_name) {
 		return NULL;
 
 	for (size_t i = 0; i < flags_count; ++ i) {
+		if (flags[i].long_name == NULL)
+			continue;
+
 		if (strcmp(flags[i].long_name, long_name) == 0)
 			return &flags[i];
 	}
@@ -404,6 +420,8 @@ static int flag_set(flag_t *f, const char *val) {
 }
 
 int args_parse_flags(args_t *a, int *where, args_t *stripped) {
+	/* If stripped args are supposed to be returned, allocate memory for them
+	   (allocate the same size as the original arguments so we dont have to do any reallocs) */
 	if (stripped != NULL) {
 		stripped->c    = 0;
 		stripped->base = (char**)malloc(sizeof(*stripped) * a->c);
@@ -416,25 +434,32 @@ int args_parse_flags(args_t *a, int *where, args_t *stripped) {
 	bool flags_end = false;
 	for (int i = 0; i < a->c; ++ i) {
 		if (arg_is_flags_end(a->v[i]) && !flags_end) {
+			/* If stripped args arent expected to be returned, we can just return from the
+			   function after hitting the end of flag arguments */
 			if (stripped == NULL)
 				return ARG_OK;
 			else {
+				/* Otherwise we continue to save all the non-flag args */
 				flags_end = true;
 				continue;
 			}
 		} else if (!arg_is_flag(a->v[i]) || flags_end) {
+			/* If stripped args are supposed to be returned, save each non-flag arg */
 			if (stripped != NULL)
 				stripped->v[stripped->c ++] = a->v[i];
 
+			/* Dont parse non-flag arguments */
 			continue;
 		}
 
+		/* Save the current arg index */
 		if (where != NULL)
 			*where = i;
 
 		bool is_long = arg_is_flag_long(a->v[i]);
 		const char *arg = a->v[i] + is_long + 1;
 
+		/* Find the end of flag name */
 		const char *tmp   = arg;
 		size_t      count = 0;
 		while (*arg != '\0' && *arg != '=') {
@@ -442,6 +467,7 @@ int args_parse_flags(args_t *a, int *where, args_t *stripped) {
 			++ arg;
 		}
 
+		/* Allocate memory for flag name and copy it there */
 		char *name = (char*)malloc(count + 1);
 		if (name == NULL)
 			return ARG_OUT_OF_MEM;
@@ -449,14 +475,17 @@ int args_parse_flags(args_t *a, int *where, args_t *stripped) {
 		strncpy(name, tmp, count);
 		name[count] = '\0';
 
+		/* Get the flag pointer */
 		flag_t *flag = is_long? get_flag_by_long_name(name) : get_flag_by_short_name(name);
 		if (flag == NULL)
 			return ARG_UNKNOWN;
 
+		/* If the flag has '=', save the value */
 		char *val = NULL;
 		if (*arg == '=') {
 			++ arg;
 
+			/* Find value end */
 			tmp   = arg;
 			count = 0;
 			while (*arg != '\0') {
@@ -464,6 +493,7 @@ int args_parse_flags(args_t *a, int *where, args_t *stripped) {
 				++ arg;
 			}
 
+			/* Allocate memory for value and copy it there */
 			val = (char*)malloc(count + 1);
 			if (val == NULL)
 				return ARG_OUT_OF_MEM;
@@ -472,10 +502,13 @@ int args_parse_flags(args_t *a, int *where, args_t *stripped) {
 			val[count] = '\0';
 		}
 
+		/* If there was no value in the flag: */
 		if (val == NULL) {
+			/* Set the flag to true if its a boolean flag */
 			if (flag->type == FLAG_BOOL)
 				*flag->as.bool_ = true;
 			else {
+				/* Else read the next argument for the value */
 				++ i;
 				if (i >= a->c)
 					return ARG_MISSING_VALUE;
@@ -487,6 +520,7 @@ int args_parse_flags(args_t *a, int *where, args_t *stripped) {
 					return err;
 			}
 		} else {
+			/* If there was a value, set the flag value to it */
 			int err = flag_set(flag, val);
 			if (err != ARG_OK)
 				return err;
@@ -501,6 +535,7 @@ int args_parse_flags(args_t *a, int *where, args_t *stripped) {
 }
 
 void args_print_flags(FILE *file) {
+	/* Find the offset of the flag descriptions */
 	int longest = 0;
 	for (size_t i = 0; i < flags_count; ++ i) {
 		flag_t *f = &flags[i];
@@ -517,6 +552,7 @@ void args_print_flags(FILE *file) {
 			longest = len;
 	}
 
+	/* Print all flags */
 	for (size_t i = 0; i < flags_count; ++ i) {
 		flag_t *f = &flags[i];
 
@@ -533,6 +569,7 @@ void args_print_flags(FILE *file) {
 
 		fprintf(file, "    %s", f->desc);
 
+		/* If the default value is a false bool or a NULL string, dont print it */
 		if ((f->type == FLAG_BOOL && !f->def.bool_) ||
 		    (f->type == FLAG_CSTR && f->def.cstr == NULL)) {
 			fprintf(file, "\n");
@@ -546,7 +583,7 @@ void args_print_flags(FILE *file) {
 		case FLAG_INT:   fprintf(file, "%i",  f->def.int_);   break;
 		case FLAG_SIZE:  fprintf(file, "%zu", f->def.size);   break;
 		case FLAG_FLOAT: fprintf(file, "%f",  f->def.float_); break;
-		case FLAG_BOOL:  fprintf(file, f->def.bool_? "true" : "false"); break;
+		case FLAG_BOOL:  fprintf(file, "true");               break;
 		}
 		fprintf(file, "')\n");
 	}

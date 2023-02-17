@@ -38,12 +38,13 @@ extern "C" {
 
 #define CLOG_VERSION_MAJOR 1
 #define CLOG_VERSION_MINOR 2
-#define CLOG_VERSION_PATCH 0
+#define CLOG_VERSION_PATCH 1
 
 /*
  * 1.0.0: Basic logging functions LOG_INFO, LOG_WARN, LOG_ERROR and LOG_FATAL
  * 1.1.0: Add LOG_CUSTOM for logging with custom titles
  * 1.2.0: Support C++
+ * 1.2.1: Make the time strictly print 2 digits for second, minute and hour
  */
 
 #ifndef WIN32
@@ -140,10 +141,10 @@ enum {
 static WORD _log_color_default = CLOG_MSG_COLOR;
 
 static WORD _log_colors[] = {
-	[CLOG_COLOR_INFO]  = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
-	[CLOG_COLOR_WARN]  = FOREGROUND_GREEN | FOREGROUND_RED  | FOREGROUND_INTENSITY,
-	[CLOG_COLOR_ERROR] = FOREGROUND_RED   | FOREGROUND_INTENSITY,
-	[CLOG_COLOR_FATAL] = FOREGROUND_RED   | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+	/* CLOG_COLOR_INFO  */ FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+	/* CLOG_COLOR_WARN  */ FOREGROUND_GREEN | FOREGROUND_RED  | FOREGROUND_INTENSITY,
+	/* CLOG_COLOR_ERROR */ FOREGROUND_RED   | FOREGROUND_INTENSITY,
+	/* CLOG_COLOR_FATAL */ FOREGROUND_RED   | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
 };
 #else
 #	define CLOG_RESET_COLOR     "\x1b[0m"
@@ -152,10 +153,10 @@ static WORD _log_colors[] = {
 #	define CLOG_MSG_COLOR       "\x1b[0m"
 
 static const char *_log_colors[] = {
-	[CLOG_COLOR_INFO]  = "\x1b[1;96m",
-	[CLOG_COLOR_WARN]  = "\x1b[1;93m",
-	[CLOG_COLOR_ERROR] = "\x1b[1;91m",
-	[CLOG_COLOR_FATAL] = "\x1b[1;95m",
+	/* CLOG_COLOR_INFO  */ "\x1b[1;96m",
+	/* CLOG_COLOR_WARN  */ "\x1b[1;93m",
+	/* CLOG_COLOR_ERROR */ "\x1b[1;91m",
+	/* CLOG_COLOR_FATAL */ "\x1b[1;95m",
 };
 #endif
 
@@ -207,7 +208,7 @@ static void log_print_time(void) {
 		fprintf(_log_file, "%s", CLOG_TIME_COLOR);
 #endif
 
-	fprintf(_log_file, "%d:%d:%d", info->tm_hour, info->tm_min, info->tm_sec);
+	fprintf(_log_file, "%02d:%02d:%02d", info->tm_hour, info->tm_min, info->tm_sec);
 	log_reset_color();
 }
 

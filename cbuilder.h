@@ -8,6 +8,8 @@
  *
  * This library provides functions to write cross-platform (Windows, Unix/Linux) build files for
  * C/C++ projects.
+ *
+ * Depends on cfs.h, clog.h, ccommon.h and cargs.h
  */
 
 /* Simple example of the library:
@@ -43,10 +45,11 @@ extern "C" {
 
 #include "clog.h"
 #include "cargs.h"
+#include "ccommon.h"
 #include "cfs.h"
 
 #define CBUILDER_VERSION_MAJOR 1
-#define CBUILDER_VERSION_MINOR 3
+#define CBUILDER_VERSION_MINOR 5
 #define CBUILDER_VERSION_PATCH 2
 
 /*
@@ -56,6 +59,9 @@ extern "C" {
  * 1.2.1: Add build cache
  * 1.3.1: Add build_clean and build to shorten build.c code
  * 1.3.2: Fix build_clean and build
+ * 1.4.2: Remove LOG_FAIL, replace with FATAL_FUNC_FAIL from ccommon.h,
+ *        rename build to build_multi_src_app
+ * 1.5.2: Add build_cache_update
  */
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
@@ -131,8 +137,9 @@ int  build_cache_load(build_cache_t *c);
 int  build_cache_save(build_cache_t *c);
 void build_cache_free(build_cache_t *c);
 
-void    build_cache_set(build_cache_t *c, const char *path, int64_t mtime);
-int64_t build_cache_get(build_cache_t *c, const char *path);
+bool    build_cache_update(build_cache_t *c, const char *path);
+void    build_cache_set(   build_cache_t *c, const char *path, int64_t mtime);
+int64_t build_cache_get(   build_cache_t *c, const char *path);
 
 /*
  * build_cache_t
@@ -150,16 +157,15 @@ int64_t build_cache_get(build_cache_t *c, const char *path);
  * void build_cache_free(build_cache_t *c)
  *     Free the build cache 'c'. Returns 0 on success.
  *
+ * bool build_cache_update(build_cache_t *c, const char *path)
+ *     Update file 'path' in build cache. Returns true if the file has been modified.
+ *
  * void build_cache_set(build_cache_t *c, const char *path, int64_t mtime)
  *     Set the last modified time of item 'path' of build cache 'c' to 'mtime'.
  *
  * int64_t build_cache_get(build_cache_t *c, const char *path)
  *     Return the last modified time of item 'path' from build cache 'c'.
  */
-
-#define LOG_FAIL(...) \
-	(log_set_flags(LOG_LOC | LOG_TIME), \
-	 LOG_FATAL("Failed at "__VA_ARGS__))
 
 #define CMD(NAME, ...) \
 	do { \
@@ -201,7 +207,8 @@ enum {
 void embed(const char *path, const char *out, int type);
 
 void build_clean(const char *path);
-void build(const char *cc, const char **srcs, size_t srcs_count, const char *bin, const char *out);
+void build_multi_src_app(const char *cc, const char **srcs, size_t srcs_count,
+                         const char *bin, const char *out);
 
 /*
  * STRING_ARRAY
@@ -220,13 +227,18 @@ void build(const char *cc, const char **srcs, size_t srcs_count, const char *bin
  * void build_clean(const char *path)
  *     Function for common cleaning functionality. Cleans all .o files from directory 'path'.
  *
- * void build(const char *cc, const char **srcs, size_t srcs_count,
- *            const char *bin, const char *out)
+ * void build_multi_src_app(const char *cc, const char **srcs, size_t srcs_count,
+ *                          const char *bin, const char *out)
  *     A wrapper to provide common build.c functionality in a single function call. Compile 'srcs'
  *     source files array of size 'srcs_count' with 'cc' compiler into 'bin' folder and output the
  *     executable into 'out'. Example:
  *         | const char *srcs[] = {"main.c", "test.c"};
  *         | build(cc, srcs, sizeof(srcs) / sizeof(srcs[0]), BIN, BIN"/"OUT);
+ *
+ *     This function also takes "extra parameters" from the 'CARGS' and 'CLIBS' macros. 'CARGS' are
+ *     the extra arguments to run on compilation, and 'CLIBS' are the library linking arguments.
+ *     To use these "extra parameters", simply define the 'CARGS' and 'CLIBS' macros. If they
+ *     arent defined, they will be defined as empty macros.
  */
 
 #ifdef __cplusplus
@@ -246,6 +258,9 @@ extern "C" {
 
 #define CARGS_IMPLEMENTATION
 #include "cargs.h"
+
+#define CCOMMON_IMPLEMENTATION
+#include "ccommon.h"
 
 #define CFS_IMPLEMENTATION
 #include "cfs.h"
@@ -288,7 +303,7 @@ void build_parse_args(args_t *a, args_t *stripped) {
 	int err = args_parse_flags(a, &where, stripped);
 	if (err != ARG_OK) {
 		switch (err) {
-		case ARG_OUT_OF_MEM:    LOG_FAIL("malloc()");
+		case ARG_OUT_OF_MEM:    FATAL_FUNC_FAIL("malloc");
 		case ARG_UNKNOWN:       build_arg_error("Unknown flag '%s'", a->v[where]);            break;
 		case ARG_MISSING_VALUE: build_arg_error("Flag '%s' is a missing value", a->v[where]); break;
 
@@ -316,17 +331,15 @@ void cmd(const char **argv) {
 	}
 
 	LOG_CUSTOM("CMD", "%s", buf);
-	pid_t pid;
-	int   status;
 
 	pid_t pid_ = fork();
 	if (pid_ == 0) {
 		if (execvp(argv[0], (char**)argv) == -1)
-			LOG_FAIL("execvp()");
+			FATAL_FUNC_FAIL("execvp");
 
 		exit(EXIT_SUCCESS);
 	} else if (pid_ == -1)
-		LOG_FAIL("fork()");
+		FATAL_FUNC_FAIL("fork");
 	else {
 		int status;
 		pid_ = wait(&status);
@@ -339,7 +352,7 @@ void compile(const char *compiler, const char **srcs, size_t srcs_count,
              const char **args, size_t args_count) {
 	const char **argv = (const char**)malloc((srcs_count + args_count + 2) * sizeof(*argv));
 	if (argv == NULL)
-		LOG_FAIL("malloc()");
+		FATAL_FUNC_FAIL("malloc");
 
 	argv[0] = compiler;
 	size_t pos = 1;
@@ -441,7 +454,7 @@ static build_cache_item_t *build_cache_add(build_cache_t *c) {
 		void *ptr = realloc(c->buf, c->size * sizeof(*c->buf));
 		if (ptr == NULL) {
 			free(c->buf);
-			LOG_FAIL("realloc()");
+			FATAL_FUNC_FAIL("realloc");
 		} else
 			c->buf = (build_cache_item_t*)ptr;
 	}
@@ -458,12 +471,14 @@ int build_cache_load(build_cache_t *c) {
 	c->size  = 16;
 	c->buf   = (build_cache_item_t*)malloc(c->size * sizeof(*c->buf));
 	if (c->buf == NULL)
-		LOG_FAIL("malloc()");
+		FATAL_FUNC_FAIL("malloc");
 
+	/* If the build cache file exists, read it into the build cache structure */
 	FILE *f = fopen(BUILD_CACHE_PATH, "r");
 	if (f != NULL) {
 		char line[PATH_MAX] = {0};
 		while (fgets(line, PATH_MAX, f) != NULL) {
+			/* First get the file path string */
 			size_t line_len = strlen(line);
 			if (line[line_len - 1] == '\n')
 				line[line_len - 1] = '\0';
@@ -480,11 +495,12 @@ int build_cache_load(build_cache_t *c) {
 			build_cache_item_t *item = build_cache_add(c);
 			item->path = (char*)malloc(len + 1);
 			if (item->path == NULL)
-				LOG_FAIL("malloc()");
+				FATAL_FUNC_FAIL("malloc");
 
 			memcpy(item->path, line + 1, len);
 			item->path[len] = '\0';
 
+			/* Parse the last modified time */
 			char *num   = line + len + 3;
 			item->mtime = (int64_t)atoll(num);
 		}
@@ -516,6 +532,16 @@ void build_cache_free(build_cache_t *c) {
 	c->size  = 0;
 }
 
+bool build_cache_update(build_cache_t *c, const char *path) {
+	int64_t m_now, m_cached = build_cache_get(c, path);
+	fs_time(path, &m_now, NULL);
+	if (m_cached != m_now) {
+		build_cache_set(c, path, m_now);
+		return true;
+	} else
+		return false;
+}
+
 void build_cache_set(build_cache_t *c, const char *path, int64_t mtime) {
 	for (size_t i = 0; i < c->count; ++ i) {
 		if (strcmp(c->buf[i].path, path) == 0) {
@@ -527,7 +553,7 @@ void build_cache_set(build_cache_t *c, const char *path, int64_t mtime) {
 	build_cache_item_t *item = build_cache_add(c);
 	item->path = (char*)malloc(strlen(path) + 1);
 	if (item->path == NULL)
-		LOG_FAIL("malloc()");
+		FATAL_FUNC_FAIL("malloc");
 
 	strcpy(item->path, path);
 	item->mtime = mtime;
@@ -554,7 +580,7 @@ void build_clean(const char *path) {
 
 		char *path = FS_JOIN_PATH(dir.path, ent.name);
 		if (path == NULL)
-			LOG_FAIL("malloc()");
+			FATAL_FUNC_FAIL("malloc");
 
 		fs_remove_file(path);
 		free(path);
@@ -571,6 +597,7 @@ void build_clean(const char *path) {
 		LOG_INFO("Cleaned '%s'", path);
 }
 
+/* Macros that have to be defined for this function */
 #ifndef CARGS
 #	define CARGS
 #endif
@@ -581,17 +608,19 @@ void build_clean(const char *path) {
 
 static char *build_file(const char *cc, build_cache_t *c, const char *out_dir, const char *src_dir,
                         const char *src_name, bool force_rebuild) {
+	/* Get the object file and source file paths */
 	char *out_name = fs_replace_ext(src_name, "o");
 	if (out_name == NULL)
-		LOG_FAIL("malloc()");
+		FATAL_FUNC_FAIL("malloc");
 
 	char *out = FS_JOIN_PATH(out_dir, out_name);
 	char *src = FS_JOIN_PATH(src_dir, src_name);
 	if (out_name == NULL || out == NULL || src == NULL)
-		LOG_FAIL("malloc()");
+		FATAL_FUNC_FAIL("malloc");
 
 	free(out_name);
 
+	/* Compile if the file needs to be compiled */
 	int64_t m_cached = build_cache_get(c, src);
 	int64_t m_now;
 	if (fs_time(src, &m_now, NULL) != 0)
@@ -606,7 +635,8 @@ static char *build_file(const char *cc, build_cache_t *c, const char *out_dir, c
 	return out;
 }
 
-void build(const char *cc, const char **srcs, size_t srcs_count, const char *bin, const char *out) {
+void build_multi_src_app(const char *cc, const char **srcs, size_t srcs_count,
+                         const char *bin, const char *out) {
 	if (!fs_exists(bin))
 		fs_create_dir(bin);
 
@@ -619,15 +649,18 @@ void build(const char *cc, const char **srcs, size_t srcs_count, const char *bin
 
 	bool rebuild_all = false;
 
+	/* Compile files in all source directories */
 	for (size_t i = 0; i < srcs_count; ++ i) {
 		int status;
+
+		/* If a header file was modified, everything needs to be rebuilt. Check for that here */
 		FOREACH_IN_DIR(srcs[i], dir, ent, {
 			if (strcmp(fs_ext(ent.name), "h") != 0)
 				continue;
 
 			char *src = FS_JOIN_PATH(srcs[i], ent.name);
 			if (src == NULL)
-				LOG_FAIL("malloc()");
+				FATAL_FUNC_FAIL("malloc");
 
 			int64_t m_cached = build_cache_get(&c, src);
 			int64_t m_now;
@@ -647,6 +680,7 @@ void build(const char *cc, const char **srcs, size_t srcs_count, const char *bin
 		if (status != 0)
 			LOG_FATAL("Failed to open directory '%s'", srcs[i]);
 
+		/* Rebuild source files */
 		FOREACH_IN_DIR(srcs[i], dir, ent, {
 			if (strcmp(fs_ext(ent.name), "c") != 0)
 				continue;
