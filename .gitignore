@@ -1,2 +1,4 @@
+bin
+build
 .ypm/*.hash
 .ypm/*.o
