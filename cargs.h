@@ -36,7 +36,6 @@ int main(int argc, const char **argv) {
 
 #ifndef CARGS_H_HEADER_GUARD
 #define CARGS_H_HEADER_GUARD
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -185,11 +184,9 @@ void args_print_usage(FILE *file, const char *app_name, const char *usage);
 #ifdef __cplusplus
 }
 #endif
-
 #endif
 
 #ifdef CARGS_IMPLEMENTATION
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -597,5 +594,4 @@ void args_print_usage(FILE *file, const char *app_name, const char *usage) {
 #ifdef __cplusplus
 }
 #endif
-
 #endif

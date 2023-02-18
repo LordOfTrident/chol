@@ -25,7 +25,6 @@ int main(void) {
 
 #ifndef CLOG_H_HEADER_GUARD
 #define CLOG_H_HEADER_GUARD
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -116,11 +115,9 @@ void log_custom(const char *title, const char *path, size_t line, const char *fm
 #ifdef __cplusplus
 }
 #endif
-
 #endif
 
 #ifdef CLOG_IMPLEMENTATION
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -310,5 +307,4 @@ void log_custom(const char *title, const char *path, size_t line, const char *fm
 #ifdef __cplusplus
 }
 #endif
-
 #endif

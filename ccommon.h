@@ -10,9 +10,8 @@
  * library.
  */
 
-#ifndef COMMON_HEADER_GUARD
-#define COMMON_HEADER_GUARD
-
+#ifndef CCOMMON_HEADER_GUARD
+#define CCOMMON_HEADER_GUARD
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,9 +19,9 @@ extern "C" {
 #include <assert.h> /* assert */
 #include <stdlib.h> /* malloc, realloc, free */
 
-#define COMMON_VERSION_MAJOR 1
-#define COMMON_VERSION_MINOR 0
-#define COMMON_VERSION_PATCH 2
+#define CCOMMON_VERSION_MAJOR 1
+#define CCOMMON_VERSION_MINOR 0
+#define CCOMMON_VERSION_PATCH 2
 
 /*
  * 1.0.0: Common macros (like TODO, UNUSED, ARRAY_SIZE...) and malloc, realloc and free wrappers
@@ -149,11 +148,9 @@ int   sfree(void **ptr);
 #ifdef __cplusplus
 }
 #endif
-
 #endif
 
 #ifdef CCOMMON_IMPLEMENTATION
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -189,5 +186,4 @@ int sfree(void **ptr) {
 #ifdef __cplusplus
 }
 #endif
-
 #endif

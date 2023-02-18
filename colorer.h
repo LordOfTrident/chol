@@ -30,7 +30,6 @@ int main(void) {
 
 #ifndef COLORER_H_HEADER_GUARD
 #define COLORER_H_HEADER_GUARD
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -106,11 +105,9 @@ void color_bg(FILE *file, int color);
 #ifdef __cplusplus
 }
 #endif
-
 #endif
 
 #ifdef COLORER_IMPLEMENTATION
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -290,5 +287,4 @@ void color_bg(FILE *file, int color) {
 #ifdef __cplusplus
 }
 #endif
-
 #endif

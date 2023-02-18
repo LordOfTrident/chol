@@ -7,7 +7,7 @@
  *     #define CBUILDER_IMPLEMENTATION
  *
  * This library provides functions to write cross-platform (Windows, Unix/Linux) build files for
- * C/C++ projects.
+ * C/C++ projects. Heavily inspired by https://github.com/tsoding/nobuild
  *
  * Depends on cfs.h, clog.h, ccommon.h and cargs.h
  */
@@ -32,7 +32,6 @@ int main(int argc, const char **argv) {
 
 #ifndef CBUILDER_H_HEADER_GUARD
 #define CBUILDER_H_HEADER_GUARD
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -244,11 +243,9 @@ void build_multi_src_app(const char *cc, const char **srcs, size_t srcs_count,
 #ifdef __cplusplus
 }
 #endif
-
 #endif
 
 #ifdef CBUILDER_IMPLEMENTATION
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -713,5 +710,4 @@ void build_multi_src_app(const char *cc, const char **srcs, size_t srcs_count,
 #ifdef __cplusplus
 }
 #endif
-
 #endif

@@ -30,7 +30,6 @@ int main(void) {
 
 #ifndef CFS_HEADER_GUARD
 #define CFS_HEADER_GUARD
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -329,11 +328,9 @@ int fs_dir_next( fs_dir_t *d, fs_ent_t *e);
 #ifdef __cplusplus
 }
 #endif
-
 #endif
 
 #ifdef CFS_IMPLEMENTATION
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -708,5 +705,4 @@ int fs_dir_next(fs_dir_t *d, fs_ent_t *e) {
 #ifdef __cplusplus
 }
 #endif
-
 #endif

@@ -27,7 +27,6 @@ int main(void) {
 
 #ifndef CSV_HEADER_GUARD
 #define CSV_HEADER_GUARD
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -182,11 +181,9 @@ size_t sv_find_substr(    sv_t sv, sv_t substr);
 #ifdef __cplusplus
 }
 #endif
-
 #endif
 
 #ifdef CSV_IMPLEMENTATION
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -360,5 +357,4 @@ size_t sv_find_substr(sv_t sv, sv_t substr) {
 #ifdef __cplusplus
 }
 #endif
-
 #endif
