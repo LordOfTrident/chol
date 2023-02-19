@@ -18,6 +18,7 @@ extern "C" {
 
 #include <assert.h> /* assert */
 #include <stdlib.h> /* malloc, realloc, free */
+#include <string.h> /* memset */
 
 #define CCOMMON_VERSION_MAJOR 1
 #define CCOMMON_VERSION_MINOR 0
@@ -27,6 +28,7 @@ extern "C" {
  * 1.0.0: Common macros (like TODO, UNUSED, ARRAY_SIZE...) and malloc, realloc and free wrappers
  * 1.0.1: Change FOREACH_IN_ARRAY iterator variable name from i to _i
  * 1.0.2: Fix C++ errors
+ * 1.1.2: Add ZERO_STRUCT
  */
 
 #define UNREACHABLE(MSG)      assert(0 && "Unreachable: " MSG)
@@ -108,16 +110,16 @@ extern "C" {
  *     'TYPE({...})'.
  */
 
-#define SALLOC(PTR, TYPE, COUNT) \
-	(PTR = (TYPE*)salloc(sizeof(TYPE), COUNT))
+#define ZERO_STRUCT(STRUCT) memset(&(STRUCT), 0, sizeof(STRUCT))
 
-#define SREALLOC(PTR, COUNT) \
-	srealloc((void**)&PTR, sizeof(*PTR), COUNT)
-
-#define SFREE(PTR) \
-	sfree((void**)&PTR)
+#define SALLOC(PTR, TYPE, COUNT) (PTR = (TYPE*)salloc(sizeof(TYPE), COUNT))
+#define SREALLOC(PTR, COUNT)     srealloc((void**)&(PTR), sizeof(*PTR), COUNT)
+#define SFREE(PTR)               sfree((void**)&(PTR))
 
 /*
+ * ZERO_STRUCT(STRUCT)
+ *     Zero initializes struct variable 'STRUCT'.
+ *
  * Macros SALLOC, SREALLOC and SFREE call functions salloc, srealloc and sfree respectively.
  *
  * SALLOC(PTR, COUNT)
