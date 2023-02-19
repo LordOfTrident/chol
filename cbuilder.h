@@ -288,7 +288,7 @@ void build_arg_error(const char *fmt, ...) {
 	va_end(args);
 
 	fprintf(stderr, "Error: %s\n", msg);
-	fprintf(stderr, "Try '"BUILD_APP_NAME" -h'\n");
+	fprintf(stderr, "Try '" BUILD_APP_NAME " -h'\n");
 }
 
 void build_set_usage(const char *usage) {
