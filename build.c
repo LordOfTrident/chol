@@ -71,6 +71,9 @@ void build(void) {
 
 				build_cache_save(&c);
 			}
+
+			free(out);
+			free(src);
 		}, status);
 
 		free(path);
