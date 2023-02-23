@@ -3,13 +3,13 @@
 </p>
 <p align="center">
 	<a href="./LICENSE">
-		<img alt="License" src="https://img.shields.io/badge/license-MIT-blue?color=26d374"/>
+		<img alt="License" src="https://img.shields.io/badge/license-MIT-26c374?style=for-the-badge">
 	</a>
 	<a href="https://github.com/LordOfTrident/chol/issues">
-		<img alt="Issues" src="https://img.shields.io/github/issues/LordOfTrident/chol?color=4f79e4"/>
+		<img alt="Issues" src="https://img.shields.io/github/issues/LordOfTrident/chol?style=for-the-badge&color=4f79e4">
 	</a>
 	<a href="https://github.com/LordOfTrident/chol/pulls">
-		<img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/LordOfTrident/chol?color=4f79e4"/>
+		<img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/LordOfTrident/chol?style=for-the-badge&color=4f79e4">
 	</a>
 	<br><br><br>
 </p>
