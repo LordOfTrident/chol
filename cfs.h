@@ -59,30 +59,9 @@ extern "C" {
  * 1.8.2: Add fs_is_path_d_or_dd
  */
 
-#ifndef WIN32
-#	if defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-#		define WIN32
-#	endif
-#endif
+#include "chol_sys.h"
 
 #ifdef WIN32
-/* WINVER and _WIN32_WINNT have to be greater or equal to 0x0600 for
-   CreateSymbolicLinkA to work on MinGW */
-#	ifdef WINVER
-#		if WINVER < 0x0600
-#			undef  WINVER
-#			define WINVER 0x0600
-#		endif
-#	endif
-
-#	ifdef _WIN32_WINNT
-#		if _WIN32_WINNT < 0x0600
-#			undef  _WIN32_WINNT
-#			define _WIN32_WINNT 0x0600
-#		endif
-#	endif
-
-#	include <windows.h>
 
 /* Guarantee PATH_MAX to be defined */
 #	ifndef PATH_MAX
@@ -95,25 +74,6 @@ extern "C" {
 
 #	define PATH_SEP "\\"
 #else
-#	ifndef __USE_XOPEN_EXTENDED
-#		define __USE_XOPEN_EXTENDED
-#	endif
-
-#	ifdef _POSIX_C_SOURCE
-#		if _POSIX_C_SOURCE < 200112L
-#			undef  _POSIX_C_SOURCE
-#			define _POSIX_C_SOURCE 200112L
-#		endif
-#	endif
-
-#	ifdef _XOPEN_SOURCE
-#		if _XOPEN_SOURCE < 500
-#			undef  _XOPEN_SOURCE
-#			define _XOPEN_SOURCE 500
-#		endif
-#	endif
-
-#	include <unistd.h>
 #	include <dirent.h>
 #	include <fcntl.h>
 #	include <sys/stat.h>
@@ -294,7 +254,7 @@ int fs_move_file(const char *path, const char *new_);
 		if (STATUS == 0) { \
 			fs_ent_t ENT_VAR; \
 			while (fs_dir_next(&DIR_VAR, &ENT_VAR) == 0) { \
-				if (fs_attr(ENT_VAR.name) & FS_HIDDEN) \
+				if (ENT_VAR.attr & FS_HIDDEN) \
 					continue; \
 				BODY \
 			} \

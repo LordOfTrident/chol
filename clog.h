@@ -53,7 +53,7 @@ extern "C" {
 #endif
 
 #ifdef WIN32
-#	include <windows.h>
+#	include "chol_sys.h"
 #endif
 
 enum {

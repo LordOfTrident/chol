@@ -42,14 +42,16 @@ extern "C" {
 #include <stdlib.h> /* exit, EXIT_FAILURE, EXIT_SUCCESS, malloc, realloc, free, atoll */
 #include <string.h> /* strcmp, memcpy */
 
+#include "chol_sys.h"
+
+#include "cfs.h"
 #include "clog.h"
 #include "cargs.h"
 #include "ccommon.h"
-#include "cfs.h"
 
 #define CBUILDER_VERSION_MAJOR 1
 #define CBUILDER_VERSION_MINOR 5
-#define CBUILDER_VERSION_PATCH 2
+#define CBUILDER_VERSION_PATCH 3
 
 /*
  * 1.0.0: Running commands (CMD and COMPILE macros), platform detection, embedding files
@@ -61,9 +63,10 @@ extern "C" {
  * 1.4.2: Remove LOG_FAIL, replace with FATAL_FUNC_FAIL from ccommon.h,
  *        rename build to build_multi_src_app
  * 1.5.2: Add build_cache_update
+ * 1.5.3: Fix errors on windows
  */
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(WIN32)
 #	define BUILD_PLATFORM_WINDOWS
 #elif defined(__APPLE__)
 #	define BUILD_PLATFORM_APPLE
@@ -76,8 +79,6 @@ extern "C" {
 #endif
 
 #ifdef BUILD_PLATFORM_WINDOWS
-#	include <windows.h>
-
 #	define CC  "gcc"
 #	define CXX "g++"
 #else
@@ -250,6 +251,9 @@ void build_multi_src_app(const char *cc, const char **srcs, size_t srcs_count,
 extern "C" {
 #endif
 
+#define CFS_IMPLEMENTATION
+#include "cfs.h"
+
 #define CLOG_IMPLEMENTATION
 #include "clog.h"
 
@@ -258,9 +262,6 @@ extern "C" {
 
 #define CCOMMON_IMPLEMENTATION
 #include "ccommon.h"
-
-#define CFS_IMPLEMENTATION
-#include "cfs.h"
 
 static bool _build_help = false;
 static bool _build_ver  = false;
@@ -329,6 +330,9 @@ void cmd(const char **argv) {
 
 	LOG_CUSTOM("CMD", "%s", buf);
 
+#ifdef BUILD_PLATFORM_WINDOWS
+	/* TODO: Support windows */
+#else
 	pid_t pid_ = fork();
 	if (pid_ == 0) {
 		if (execvp(argv[0], (char**)argv) == -1)
@@ -343,6 +347,7 @@ void cmd(const char **argv) {
 		if (status != 0)
 			LOG_FATAL("Command '%s' exited with exitcode '%i'", argv[0], status);
 	}
+#endif
 }
 
 void compile(const char *compiler, const char **srcs, size_t srcs_count,
