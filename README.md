@@ -14,7 +14,7 @@
 	<br><br><br>
 </p>
 
-A collection of header-only [STB-style](https://github.com/nothings/stb) C libraries.
+A collection of header-only [STB-style](https://github.com/nothings/stb) C99 libraries.
 
 ## Table of contents
 * [Documentation](#documentation)
