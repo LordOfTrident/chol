@@ -64,6 +64,8 @@ extern "C" {
  *        rename build to build_multi_src_app
  * 1.5.2: Add build_cache_update
  * 1.5.3: Fix errors on windows
+ * 1.5.4: Fix CMD signature
+ * 1.6.4: Add Windows support for cmd
  */
 
 #if defined(WIN32)
@@ -167,9 +169,9 @@ int64_t build_cache_get(   build_cache_t *c, const char *path);
  *     Return the last modified time of item 'path' from build cache 'c'.
  */
 
-#define CMD(NAME, ...) \
+#define CMD(...) \
 	do { \
-		const char *argv[] = {NAME, __VA_ARGS__, NULL}; \
+		const char *argv[] = {__VA_ARGS__, NULL}; \
 		cmd(argv); \
 	} while (0)
 
@@ -187,8 +189,8 @@ void compile(const char *compiler, const char **srcs, size_t srcs_count,
  * LOG_FAIL(...)
  *     Log an internal failure
  *
- * CMD(NAME, ...)
- *     Run the command 'NAME' with arguments '...'
+ * CMD( ...)
+ *     Run a command with arguments '...', where the first argument is the command name.
  *
  * COMPILE(NAME, SRCS, SRCS_COUNT, ...)
  *     Run the command 'NAME' and pass in an array of parameters 'SRCS' with size 'SRCS_COUNT'
@@ -322,21 +324,71 @@ void build_parse_args(args_t *a, args_t *stripped) {
 }
 
 void cmd(const char **argv) {
-	char buf[1024] = {0};
+	size_t count     = 0;
+	char   buf[1024] = {0};
+
+	bool first = true;
 	for (const char **next = argv; *next != NULL; ++ next) {
+		if (first)
+			first = false;
+		else
+			strcat(buf, " ");
+
 		strcat(buf, *next);
-		strcat(buf, " ");
+		++ count;
 	}
 
 	LOG_CUSTOM("CMD", "%s", buf);
 
 #ifdef BUILD_PLATFORM_WINDOWS
-	/* TODO: Support windows */
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	memset(&si, 0, sizeof(si));
+	memset(&pi, 0, sizeof(pi));
+	si.cb = sizeof(si);
+
+	size_t len      = strlen(buf) + count * 2;
+	char  *cmd_line = (char*)malloc(len);
+	if (cmd_line == NULL)
+		FATAL_FUNC_FAIL("malloc");
+
+	memset(cmd_line, 0, len);
+
+	first = true;
+	for (const char **next = argv; *next != NULL; ++ next) {
+		if (first) {
+			strcat(cmd_line, *next);
+			first = false;
+		} else {
+			strcat(cmd_line, " ");
+			strcat(cmd_line, "\"");
+			strcat(cmd_line, *next);
+			strcat(cmd_line, "\"");
+		}
+	}
+
+	LOG_INFO("%s", cmd_line);
+
+	if (!CreateProcessA(NULL, cmd_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+		LOG_FATAL("Could not execute command '%s' %d", argv[0], GetLastError());
+
+	WaitForSingleObject(pi.hProcess, INFINITE);
+	free(cmd_line);
+
+	DWORD status;
+	GetExitCodeProcess(pi.hProcess, &status);
+
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+
+	if (status != 0)
+		LOG_FATAL("Command '%s' exited with exitcode '%i'", argv[0], status);
 #else
 	pid_t pid_ = fork();
 	if (pid_ == 0) {
 		if (execvp(argv[0], (char**)argv) == -1)
-			FATAL_FUNC_FAIL("execvp");
+			LOG_FATAL("Could not execute command '%s'", argv[0]);
 
 		exit(EXIT_SUCCESS);
 	} else if (pid_ == -1)
