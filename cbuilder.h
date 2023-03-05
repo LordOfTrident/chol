@@ -249,7 +249,7 @@ void build_app(const char *compiler, build_app_config_t *config);
  *         |     .bin = BIN, .out = BIN"/"OUT,
  *         |     .srcs = srcs, .srcs_count = sizeof(srcs) / sizeof(srcs[0]),
  *         | };
- *         | build_multi_src_app(cc, &config);
+ *         | built_app(cc, &config);
  *
  *     This function also takes "extra parameters" from the 'CARGS' and 'CLIBS' macros. 'CARGS' are
  *     the extra arguments to run on compilation, and 'CLIBS' are the library linking arguments.
