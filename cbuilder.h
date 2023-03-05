@@ -50,8 +50,8 @@ extern "C" {
 #include "ccommon.h"
 
 #define CBUILDER_VERSION_MAJOR 1
-#define CBUILDER_VERSION_MINOR 5
-#define CBUILDER_VERSION_PATCH 3
+#define CBUILDER_VERSION_MINOR 7
+#define CBUILDER_VERSION_PATCH 4
 
 /*
  * 1.0.0: Running commands (CMD and COMPILE macros), platform detection, embedding files
@@ -66,6 +66,7 @@ extern "C" {
  * 1.5.3: Fix errors on windows
  * 1.5.4: Fix CMD signature
  * 1.6.4: Add Windows support for cmd
+ * 1.7.4: Rename build_multi_src_app to build_app, add build_app_config_t
  */
 
 #if defined(WIN32)
@@ -209,8 +210,17 @@ enum {
 void embed(const char *path, const char *out, int type);
 
 void build_clean(const char *path);
-void build_multi_src_app(const char *cc, const char **srcs, size_t srcs_count,
-                         const char *bin, const char *out);
+
+typedef struct {
+	const char *src_ext, *header_ext;
+
+	const char *bin, *out;
+
+	const char **srcs;
+	size_t       srcs_count;
+} build_app_config_t;
+
+void build_app(const char *compiler, build_app_config_t *config);
 
 /*
  * STRING_ARRAY
@@ -229,13 +239,17 @@ void build_multi_src_app(const char *cc, const char **srcs, size_t srcs_count,
  * void build_clean(const char *path)
  *     Function for common cleaning functionality. Cleans all .o files from directory 'path'.
  *
- * void build_multi_src_app(const char *cc, const char **srcs, size_t srcs_count,
- *                          const char *bin, const char *out)
- *     A wrapper to provide common build.c functionality in a single function call. Compile 'srcs'
- *     source files array of size 'srcs_count' with 'cc' compiler into 'bin' folder and output the
- *     executable into 'out'. Example:
+ * void build_app(const char *compiler, build_app_config_t *config)
+ *     A wrapper to provide common build.c functionality in a single function call. From config,
+ *     compile '.srcs' source files array of size '.srcs_count' with 'compiler' compiler into '.bin'
+ *     folder and output the executable into '.out'. Example:
  *         | const char *srcs[] = {"main.c", "test.c"};
- *         | build(cc, srcs, sizeof(srcs) / sizeof(srcs[0]), BIN, BIN"/"OUT);
+ *         | build_app_config_t config = {
+ *         |     .src_ext = "c", .header_ext = "h",
+ *         |     .bin = BIN, .out = BIN"/"OUT,
+ *         |     .srcs = srcs, .srcs_count = sizeof(srcs) / sizeof(srcs[0]),
+ *         | };
+ *         | build_multi_src_app(cc, &config);
  *
  *     This function also takes "extra parameters" from the 'CARGS' and 'CLIBS' macros. 'CARGS' are
  *     the extra arguments to run on compilation, and 'CLIBS' are the library linking arguments.
@@ -689,10 +703,9 @@ static char *build_file(const char *cc, build_cache_t *c, const char *out_dir, c
 	return out;
 }
 
-void build_multi_src_app(const char *cc, const char **srcs, size_t srcs_count,
-                         const char *bin, const char *out) {
-	if (!fs_exists(bin))
-		fs_create_dir(bin);
+void build_app(const char *compiler, build_app_config_t *config) {
+	if (!fs_exists(config->bin))
+		fs_create_dir(config->bin);
 
 	char  *o_files[128];
 	size_t o_files_count = 0;
@@ -704,15 +717,15 @@ void build_multi_src_app(const char *cc, const char **srcs, size_t srcs_count,
 	bool rebuild_all = false;
 
 	/* Compile files in all source directories */
-	for (size_t i = 0; i < srcs_count; ++ i) {
+	for (size_t i = 0; i < config->srcs_count; ++ i) {
 		int status;
 
 		/* If a header file was modified, everything needs to be rebuilt. Check for that here */
-		FOREACH_IN_DIR(srcs[i], dir, ent, {
-			if (strcmp(fs_ext(ent.name), "h") != 0)
+		FOREACH_IN_DIR(config->srcs[i], dir, ent, {
+			if (strcmp(fs_ext(ent.name), config->header_ext) != 0)
 				continue;
 
-			char *src = FS_JOIN_PATH(srcs[i], ent.name);
+			char *src = FS_JOIN_PATH(config->srcs[i], ent.name);
 			if (src == NULL)
 				FATAL_FUNC_FAIL("malloc");
 
@@ -732,21 +745,22 @@ void build_multi_src_app(const char *cc, const char **srcs, size_t srcs_count,
 		}, status);
 
 		if (status != 0)
-			LOG_FATAL("Failed to open directory '%s'", srcs[i]);
+			LOG_FATAL("Failed to open directory '%s'", config->srcs[i]);
 
 		/* Rebuild source files */
-		FOREACH_IN_DIR(srcs[i], dir, ent, {
-			if (strcmp(fs_ext(ent.name), "c") != 0)
+		FOREACH_IN_DIR(config->srcs[i], dir, ent, {
+			if (strcmp(fs_ext(ent.name), config->src_ext) != 0)
 				continue;
 
 			assert(o_files_count < sizeof(o_files) / sizeof(o_files[0]));
 
-			char *out = build_file(cc, &c, bin, srcs[i], ent.name, rebuild_all);
+			char *out = build_file(compiler, &c, config->bin, config->srcs[i],
+			                       ent.name, rebuild_all);
 			o_files[o_files_count ++] = out;
 		}, status);
 
 		if (status != 0)
-			LOG_FATAL("Failed to open directory '%s'", srcs[i]);
+			LOG_FATAL("Failed to open directory '%s'", config->srcs[i]);
 	}
 
 	if (o_files_count == 0)
@@ -755,7 +769,7 @@ void build_multi_src_app(const char *cc, const char **srcs, size_t srcs_count,
 		if (build_cache_save(&c) != 0)
 			LOG_FATAL("Failed to save build cache");
 
-		COMPILE(cc, o_files, o_files_count, "-o", out, CARGS, CLIBS);
+		COMPILE(compiler, o_files, o_files_count, "-o", config->out, CARGS, CLIBS);
 
 		for (size_t i = 0; i < o_files_count; ++ i)
 			free(o_files[i]);
