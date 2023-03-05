@@ -223,6 +223,22 @@ typedef struct {
 void build_app(const char *compiler, build_app_config_t *config);
 
 /*
+ * build_app_config_t
+ *     Config structure for the build_app function
+ *
+ *     const char *src_ext
+ *         Extension of a source file
+ *     const char *header_ext
+ *         Extension of a header file
+ *     const char *bin
+ *         The binary output directory
+ *     const char *out
+ *         The app output path
+ *     const char **srcs
+ *         Source files to compile
+ *     size_t srcs_count
+ *         Count of elements in 'srcs'
+ *
  * STRING_ARRAY
  *     Embed file as a string array (const char*[])
  *
@@ -240,9 +256,7 @@ void build_app(const char *compiler, build_app_config_t *config);
  *     Function for common cleaning functionality. Cleans all .o files from directory 'path'.
  *
  * void build_app(const char *compiler, build_app_config_t *config)
- *     A wrapper to provide common build.c functionality in a single function call. From config,
- *     compile '.srcs' source files array of size '.srcs_count' with 'compiler' compiler into '.bin'
- *     folder and output the executable into '.out'. Example:
+ *     A wrapper to provide common build.c functionality in a single function call. Example:
  *         | const char *srcs[] = {"main.c", "test.c"};
  *         | build_app_config_t config = {
  *         |     .src_ext = "c", .header_ext = "h",
