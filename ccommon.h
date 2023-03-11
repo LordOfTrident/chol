@@ -18,7 +18,7 @@ extern "C" {
 
 #include <assert.h> /* assert */
 #include <stdlib.h> /* malloc, realloc, free */
-#include <string.h> /* memset */
+#include <string.h> /* memset, strlen, strcpy */
 
 #define CCOMMON_VERSION_MAJOR 1
 #define CCOMMON_VERSION_MINOR 0
@@ -29,6 +29,7 @@ extern "C" {
  * 1.0.1: Change FOREACH_IN_ARRAY iterator variable name from i to _i
  * 1.0.2: Fix C++ errors
  * 1.1.2: Add ZERO_STRUCT
+ * 1.2.2: Add strcpy_to_heap
  */
 
 #define UNREACHABLE(MSG)      assert(0 && "Unreachable: " MSG)
@@ -116,6 +117,8 @@ extern "C" {
 #define SREALLOC(PTR, COUNT)     srealloc((void**)&(PTR), sizeof(*PTR), COUNT)
 #define SFREE(PTR)               sfree((void**)&(PTR))
 
+char *strcpy_to_heap(const char *str);
+
 /*
  * ZERO_STRUCT(STRUCT)
  *     Zero initializes struct variable 'STRUCT'.
@@ -141,6 +144,10 @@ extern "C" {
  *     returns a non-zero result. Example:
  *         | if (SFREE(numbers) != 0)
  *         |     UNREACHABLE("'numbers' is NULL");
+ *
+ * char *strcpy_to_heap(const char *str)
+ *     Copies the string 'str' into a heap-allocated buffer and returns a pointer to it. On
+ *     allocation fail, NULL is returned.
  */
 
 void *salloc(size_t memb_size, size_t count);
@@ -156,6 +163,15 @@ int   sfree(void **ptr);
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+char *strcpy_to_heap(const char *str) {
+	char *copy = (char*)malloc(strlen(str) + 1);
+	if (copy == NULL)
+		return NULL;
+
+	strcpy(copy, str);
+	return copy;
+}
 
 void *salloc(size_t memb_size, size_t count) {
 	return malloc(memb_size * count);
