@@ -66,15 +66,15 @@ You can find ypm [here](https://github.com/yeti0904/ypm)
 ## Platform support
 Table of what platforms the given library was tested on and worked
 
-| Library                   | Linux support | Windows support | Unix support |
-|---------------------------|---------------|-----------------|--------------|
-| [cbuilder](./cbuilder.h)  | Yes           | Partial         | Not tested   |
-| [cfs](./cfs.h)            | Yes           | Yes             | Not tested   |
-| [clog](./clog.h)          | Yes           | Yes             | Not tested   |
-| [csv](./csv.h)            | Yes           | Yes             | Not tested   |
-| [cargs](./cargs.h)        | Yes           | Yes             | Not tested   |
-| [ccommon](./ccommon.h)    | Yes           | Yes             | Not tested   |
-| [colorer](./colorer.h)    | Yes           | Yes             | Not tested   |
+| Library                   | Linux support | Windows support | Unix support | MacOS support |
+|---------------------------|---------------|-----------------|--------------|---------------|
+| [cbuilder](./cbuilder.h)  | Yes           | Yes             | Not tested   | Not tested    |
+| [cfs](./cfs.h)            | Yes           | Yes             | Not tested   | Not tested    |
+| [clog](./clog.h)          | Yes           | Yes             | Not tested   | Not tested    |
+| [csv](./csv.h)            | Yes           | Yes             | Not tested   | Not tested    |
+| [cargs](./cargs.h)        | Yes           | Yes             | Not tested   | Not tested    |
+| [ccommon](./ccommon.h)    | Yes           | Yes             | Not tested   | Not tested    |
+| [colorer](./colorer.h)    | Yes           | Yes             | Not tested   | Not tested    |
 
 ## Bugs
 If you find any bugs, please create an issue and report them.
