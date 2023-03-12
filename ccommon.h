@@ -125,8 +125,9 @@ char *strcpy_to_heap(const char *str);
  *
  * Macros SALLOC, SREALLOC and SFREE call functions salloc, srealloc and sfree respectively.
  *
- * SALLOC(PTR, COUNT)
- *     Allocates an array of size 'COUNT' into the pointer 'PTR'. Returns NULL on fail. Example:
+ * SALLOC(PTR, TYPE, COUNT)
+ *     Allocates an array of size 'COUNT' with element type 'TYPE' into the pointer 'PTR'.
+ *     Returns NULL on fail. Example:
  *         | int *numbers;
  *         | if (SALLOC(numbers, int, 5) == NULL)
  *         |     FATAL_FUNC_FAIL("SALLOC");
