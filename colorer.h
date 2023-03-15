@@ -4,7 +4,7 @@
  *
  * This is an STB-style library, so to include the library implementation, you need to define
  * the implementation macro:
- *     #define COLORER_IMPLEMENTATION
+ *     #define CHOL_COLORER_IMPLEMENTATION
  *
  * This library provides simple cross-platform (Windows, Unix/Linux) functions to set the outpit
  * color.
@@ -13,8 +13,8 @@
 /* Simple example of the library:
 #include <stdio.h>
 
-#define COLORER_IMPLEMENTATION
-#include <colorer.h>
+#define CHOL_COLORER_IMPLEMENTATION
+#include <chol/colorer.h>
 
 int main(void) {
 	color_init();
@@ -28,15 +28,15 @@ int main(void) {
 }
 */
 
-#ifndef COLORER_H_HEADER_GUARD
-#define COLORER_H_HEADER_GUARD
+#ifndef CHOL_COLORER_H_HEADER_GUARD
+#define CHOL_COLORER_H_HEADER_GUARD
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define COLORER_VERSION_MAJOR 1
-#define COLORER_VERSION_MINOR 2
-#define COLORER_VERSION_PATCH 1
+#define CHOL_COLORER_VERSION_MAJOR 1
+#define CHOL_COLORER_VERSION_MINOR 2
+#define CHOL_COLORER_VERSION_PATCH 1
 
 /*
  * 1.0.0: 16 color macros, resetting color, changing foreground and background
@@ -107,7 +107,7 @@ void color_bg(FILE *file, int color);
 #endif
 #endif
 
-#ifdef COLORER_IMPLEMENTATION
+#ifdef CHOL_COLORER_IMPLEMENTATION
 #ifdef __cplusplus
 extern "C" {
 #endif

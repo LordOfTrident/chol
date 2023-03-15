@@ -1,15 +1,14 @@
 #include <string.h> /* strcmp */
 #include <malloc.h> /* free */
 
-/* Directories */
 #define SRC "examples"
 #define BIN "bin"
 
 #define CARGS "-O2", "-std=c99", "-Wall", "-Wextra", "-Werror", "-pedantic", \
               "-Wno-deprecated-declarations", "-I./"
 
-#define CBUILDER_IMPLEMENTATION
-#include "cbuilder.h"
+#define CHOL_BUILDER_IMPLEMENTATION
+#include "builder.h"
 
 char *cc = CC;
 
@@ -93,9 +92,8 @@ void build(void) {
 
 int main(int argc, const char **argv) {
 	args_t a = build_init(argc, argv);
-	/* Add the 'clean' subcommand to the usage */
-	build_set_usage("[clean] [OPTIONS]");
 
+	build_set_usage("[clean] [OPTIONS]");
 	flag_cstr(NULL, "CC", "The C compiler path", &cc);
 
 	args_t stripped;

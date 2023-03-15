@@ -16,6 +16,8 @@
 
 A collection of header-only [STB-style](https://github.com/nothings/stb) C99 libraries.
 
+**NOTE:** This library is still actively developed and might recieve breaking changes.
+
 ## Table of contents
 * [Documentation](#documentation)
 * [Examples](#examples)
@@ -29,7 +31,7 @@ A collection of header-only [STB-style](https://github.com/nothings/stb) C99 lib
 Each header file contains its documentation in the form of comments.
 
 If you need to include `windows.h` or `unistd.h` in your project while youre using a library from
-here, include [`chol_sys.h`](./chol_sys.h) instead, which defines version macros to make certain
+here, include [`sys.h`](./sys.h) instead, which defines version macros to make certain
 functions used by the libraries here available. If those macros arent defined and those headers
 are included before the libraries, the compiler might throw errors.
 
@@ -68,13 +70,13 @@ Table of what platforms the given library was tested on and worked
 
 | Library                   | Linux support | Windows support | Unix support | MacOS support |
 |---------------------------|---------------|-----------------|--------------|---------------|
-| [cbuilder](./cbuilder.h)  | Yes           | Yes             | Not tested   | Not tested    |
-| [cfs](./cfs.h)            | Yes           | Yes             | Not tested   | Not tested    |
-| [clog](./clog.h)          | Yes           | Yes             | Not tested   | Not tested    |
-| [csv](./csv.h)            | Yes           | Yes             | Not tested   | Not tested    |
-| [cargs](./cargs.h)        | Yes           | Yes             | Not tested   | Not tested    |
-| [ccommon](./ccommon.h)    | Yes           | Yes             | Not tested   | Not tested    |
-| [colorer](./colorer.h)    | Yes           | Yes             | Not tested   | Not tested    |
+| [builder.h](./builder.h)  | Yes           | Yes             | Not tested   | Not tested    |
+| [fs.h](./fs.h)            | Yes           | Yes             | Not tested   | Not tested    |
+| [log.h](./log.h)          | Yes           | Yes             | Not tested   | Not tested    |
+| [sv.h](./sv.h)            | Yes           | Yes             | Not tested   | Not tested    |
+| [args.h](./args.h)        | Yes           | Yes             | Not tested   | Not tested    |
+| [common.h](./common.h)    | Yes           | Yes             | Not tested   | Not tested    |
+| [colorer.h](./colorer.h)  | Yes           | Yes             | Not tested   | Not tested    |
 
 ## Bugs
 If you find any bugs, please create an issue and report them.

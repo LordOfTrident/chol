@@ -1,10 +1,10 @@
 #include <stdio.h>  /* printf, fprintf, stderr */
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE*/
 
-/* cargs is an STB-style library, so CARGS_IMPLEMENTATION has to be defined for the implementation
-   to be included */
-#define CARGS_IMPLEMENTATION
-#include <cargs.h>
+/* cargs is an STB-style library, so CHOL_ARGS_IMPLEMENTATION has to be defined for the
+   implementation to be included */
+#define CHOL_ARGS_IMPLEMENTATION
+#include <args.h>
 
 int main(int argc, const char **argv) {
 	args_t a = new_args(argc, argv);       /* the command line arguments structure */

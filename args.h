@@ -4,7 +4,7 @@
  *
  * This is an STB-style library, so to include the library implementation, you need to define
  * the implementation macro:
- *     #define CARGS_IMPLEMENTATION
+ *     #define CHOL_ARGS_IMPLEMENTATION
  *
  * This library provides functions to easily parse and handle command line arguments and flags.
  */
@@ -12,8 +12,8 @@
 /* Simple example of the library:
 #include <stdio.h>
 
-#define CARGS_IMPLEMENTATION
-#include <cargs.h>
+#define CHOL_ARGS_IMPLEMENTATION
+#include <chol/args.h>
 
 int main(int argc, const char **argv) {
 	args_t a = new_args(argc, argv);
@@ -34,8 +34,8 @@ int main(int argc, const char **argv) {
 }
 */
 
-#ifndef CARGS_H_HEADER_GUARD
-#define CARGS_H_HEADER_GUARD
+#ifndef CHOL_ARGS_H_HEADER_GUARD
+#define CHOL_ARGS_H_HEADER_GUARD
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,9 +46,9 @@ extern "C" {
 #include <string.h>  /* strcmp, strlen, strdup, strcpy, strncpy */
 #include <assert.h>  /* assert */
 
-#define CARGS_VERSION_MAJOR 1
-#define CARGS_VERSION_MINOR 2
-#define CARGS_VERSION_PATCH 3
+#define CHOL_ARGS_VERSION_MAJOR 1
+#define CHOL_ARGS_VERSION_MINOR 2
+#define CHOL_ARGS_VERSION_PATCH 3
 
 /*
  * 1.0.0: Parsing flags, returning stripped arguments
@@ -186,7 +186,7 @@ void args_print_usage(FILE *file, const char *app_name, const char *usage);
 #endif
 #endif
 
-#ifdef CARGS_IMPLEMENTATION
+#ifdef CHOL_ARGS_IMPLEMENTATION
 #ifdef __cplusplus
 extern "C" {
 #endif

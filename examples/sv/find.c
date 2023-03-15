@@ -1,7 +1,7 @@
 #include <stdio.h>
 
-#define CSV_IMPLEMENTATION
-#include <csv.h>
+#define CHOL_SV_IMPLEMENTATION
+#include <sv.h>
 
 void a(void) {
 	sv_t sv     = sv_cstr("Hello, world!");

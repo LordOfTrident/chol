@@ -1,8 +1,8 @@
 #include <stdio.h>  /* printf, stderr, fprintf */
 #include <stdlib.h> /* EXIT_FAILURE, EXIT_SUCCESS */
 
-#define CFS_IMPLEMENTATION
-#include <cfs.h>
+#define CHOL_FS_IMPLEMENTATION
+#include <fs.h>
 
 int main(void) {
 	const char *path = "./";

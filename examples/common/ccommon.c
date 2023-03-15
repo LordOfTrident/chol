@@ -1,7 +1,7 @@
 #include <stdio.h> /* printf */
 
-#define CCOMMON_IMPLEMENTATION
-#include <ccommon.h>
+#define CHOL_COMMON_IMPLEMENTATION
+#include <common.h>
 
 int main(int argc, char **argv) {
 	UNUSED(argv);

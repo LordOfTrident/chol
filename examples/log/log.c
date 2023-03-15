@@ -1,5 +1,5 @@
-#define CLOG_IMPLEMENTATION
-#include <clog.h>
+#define CHOL_LOG_IMPLEMENTATION
+#include <log.h>
 
 int main(void) {
 	log_into(stdout); /* on default, clog logs into stderr */

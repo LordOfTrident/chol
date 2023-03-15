@@ -4,14 +4,14 @@
  *
  * This is an STB-style library, so to include the library implementation, you need to define
  * the implementation macro:
- *     #define COMMON_IMPLEMENTATION
+ *     #define CHOL_COMMON_IMPLEMENTATION
  *
  * This library provides some common macros/functions that do not really fit into any specific
  * library.
  */
 
-#ifndef CCOMMON_HEADER_GUARD
-#define CCOMMON_HEADER_GUARD
+#ifndef CHOL_COMMON_H_HEADER_GUARD
+#define CHOL_COMMON_H_HEADER_GUARD
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,9 +20,9 @@ extern "C" {
 #include <stdlib.h> /* malloc, realloc, free */
 #include <string.h> /* memset, strlen, strcpy */
 
-#define CCOMMON_VERSION_MAJOR 1
-#define CCOMMON_VERSION_MINOR 0
-#define CCOMMON_VERSION_PATCH 2
+#define CHOL_COMMON_VERSION_MAJOR 1
+#define CHOL_COMMON_VERSION_MINOR 0
+#define CHOL_COMMON_VERSION_PATCH 2
 
 /*
  * 1.0.0: Common macros (like TODO, UNUSED, ARRAY_SIZE...) and malloc, realloc and free wrappers
@@ -160,7 +160,7 @@ int   sfree(void **ptr);
 #endif
 #endif
 
-#ifdef CCOMMON_IMPLEMENTATION
+#ifdef CHOL_COMMON_IMPLEMENTATION
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -4,7 +4,7 @@
  *
  * This is an STB-style library, so to include the library implementation, you need to define
  * the implementation macro:
- *     #define CFS_IMPLEMENTATION
+ *     #define CHOL_FS_IMPLEMENTATION
  *
  * This library provides simple cross-platform (Windows, Unix/Linux) filesystem functions.
  */
@@ -12,8 +12,8 @@
 /* Simple example of the library:
 #include <stdio.h>
 
-#define CFS_IMPLEMENTATION
-#include <cfs.h>
+#define CHOL_FS_IMPLEMENTATION
+#include <chol/fs.h>
 
 int main(void) {
 	fs_dir_t dir;
@@ -28,8 +28,8 @@ int main(void) {
 }
 */
 
-#ifndef CFS_HEADER_GUARD
-#define CFS_HEADER_GUARD
+#ifndef CHOL_FS_H_HEADER_GUARD
+#define CHOL_FS_H_HEADER_GUARD
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,9 +40,9 @@ extern "C" {
 #include <stdarg.h>  /* va_list, va_start, va_end, va_arg */
 #include <stdint.h>  /* int64_t */
 
-#define CFS_VERSION_MAJOR 1
-#define CFS_VERSION_MINOR 8
-#define CFS_VERSION_PATCH 2
+#define CHOL_FS_VERSION_MAJOR 1
+#define CHOL_FS_VERSION_MINOR 8
+#define CHOL_FS_VERSION_PATCH 2
 
 /*
  * 1.0.0: Looping through directory files, basic file attributes, file exists...
@@ -59,7 +59,7 @@ extern "C" {
  * 1.8.2: Add fs_is_path_d_or_dd
  */
 
-#include "chol_sys.h"
+#include "sys.h"
 
 #ifdef WIN32
 
@@ -290,7 +290,7 @@ int fs_dir_next( fs_dir_t *d, fs_ent_t *e);
 #endif
 #endif
 
-#ifdef CFS_IMPLEMENTATION
+#ifdef CHOL_FS_IMPLEMENTATION
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -4,7 +4,7 @@
  *
  * This is an STB-style library, so to include the library implementation, you need to define
  * the implementation macro:
- *     #define CBUILDER_IMPLEMENTATION
+ *     #define CHOL_BUILDER_IMPLEMENTATION
  *
  * This library provides functions to write cross-platform (Windows, Unix/Linux) build files for
  * C/C++ projects. Heavily inspired by https://github.com/tsoding/nobuild
@@ -13,8 +13,8 @@
  */
 
 /* Simple example of the library:
-#define CBUILDER_IMPLEMENTATION
-#include <cbuilder.h>
+#define CHOL_BUILDER_IMPLEMENTATION
+#include <chol/builder.h>
 
 char *cc = CC;
 
@@ -30,8 +30,8 @@ int main(int argc, const char **argv) {
 }
 */
 
-#ifndef CBUILDER_H_HEADER_GUARD
-#define CBUILDER_H_HEADER_GUARD
+#ifndef CHOL_BUILDER_H_HEADER_GUARD
+#define CHOL_BUILDER_H_HEADER_GUARD
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,16 +42,16 @@ extern "C" {
 #include <stdlib.h> /* exit, EXIT_FAILURE, EXIT_SUCCESS, malloc, realloc, free, atoll */
 #include <string.h> /* strcmp, memcpy */
 
-#include "chol_sys.h"
+#include "sys.h"
 
-#include "cfs.h"
-#include "clog.h"
-#include "cargs.h"
-#include "ccommon.h"
+#include "fs.h"
+#include "log.h"
+#include "args.h"
+#include "common.h"
 
-#define CBUILDER_VERSION_MAJOR 1
-#define CBUILDER_VERSION_MINOR 7
-#define CBUILDER_VERSION_PATCH 4
+#define CHOL_BUILDER_VERSION_MAJOR 1
+#define CHOL_BUILDER_VERSION_MINOR 7
+#define CHOL_BUILDER_VERSION_PATCH 4
 
 /*
  * 1.0.0: Running commands (CMD and COMPILE macros), platform detection, embedding files
@@ -94,7 +94,7 @@ extern "C" {
 #endif
 
 #define BUILD_APP_NAME   "./build"
-#define BUILD_CACHE_PATH ".cbuilder-cache"
+#define BUILD_CACHE_PATH ".chol_builder_cache"
 
 void build_set_usage(const char *usage);
 void build_parse_args(args_t *a, args_t *stripped);
@@ -276,22 +276,22 @@ void build_app(const char *compiler, build_app_config_t *config);
 #endif
 #endif
 
-#ifdef CBUILDER_IMPLEMENTATION
+#ifdef CHOL_BUILDER_IMPLEMENTATION
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define CFS_IMPLEMENTATION
-#include "cfs.h"
+#define CHOL_FS_IMPLEMENTATION
+#include "fs.h"
 
-#define CLOG_IMPLEMENTATION
-#include "clog.h"
+#define CHOL_LOG_IMPLEMENTATION
+#include "log.h"
 
-#define CARGS_IMPLEMENTATION
-#include "cargs.h"
+#define CHOL_ARGS_IMPLEMENTATION
+#include "args.h"
 
-#define CCOMMON_IMPLEMENTATION
-#include "ccommon.h"
+#define CHOL_COMMON_IMPLEMENTATION
+#include "common.h"
 
 static bool _build_help = false;
 static bool _build_ver  = false;
@@ -345,8 +345,8 @@ void build_parse_args(args_t *a, args_t *stripped) {
 		args_print_usage(stdout, BUILD_APP_NAME, _build_usage);
 		exit(EXIT_SUCCESS);
 	} else if (_build_ver) {
-		printf("cbuilder v%i.%i.%i\n",
-		       CBUILDER_VERSION_MAJOR, CBUILDER_VERSION_MINOR, CBUILDER_VERSION_PATCH);
+		printf("chol/builder.h v%i.%i.%i\n",
+		       CHOL_BUILDER_VERSION_MAJOR, CHOL_BUILDER_VERSION_MINOR, CHOL_BUILDER_VERSION_PATCH);
 		exit(EXIT_SUCCESS);
 	}
 }

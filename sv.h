@@ -4,7 +4,7 @@
  *
  * This is an STB-style library, so to include the library implementation, you need to define
  * the implementation macro:
- *     #define CSV_IMPLEMENTATION
+ *     #define CHOL_SV_IMPLEMENTATION
  *
  * This library provides C++ std::string_view-like structure and functions to operate on it.
  * (https://en.cppreference.com/w/cpp/string/basic_string_view)
@@ -13,8 +13,8 @@
 /* Simple example of the library:
 #include <stdio.h>
 
-#define CSV_IMPLEMENTATION
-#include <csv.h>
+#define CHOL_SV_IMPLEMENTATION
+#include <chol/sv.h>
 
 int main(void) {
 	sv_t sv = sv_cstr("aabaacbaHelloabacb");
@@ -25,8 +25,8 @@ int main(void) {
 }
 */
 
-#ifndef CSV_HEADER_GUARD
-#define CSV_HEADER_GUARD
+#ifndef CHOL_SV_H_HEADER_GUARD
+#define CHOL_SV_H_HEADER_GUARD
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,9 +34,9 @@ extern "C" {
 #include <string.h>  /* strlen */
 #include <stdbool.h> /* bool, true, false */
 
-#define CSV_VERSION_MAJOR 1
-#define CSV_VERSION_MINOR 1
-#define CSV_VERSION_PATCH 1
+#define CHOL_SV_VERSION_MAJOR 1
+#define CHOL_SV_VERSION_MINOR 1
+#define CHOL_SV_VERSION_PATCH 1
 
 /*
  * 1.0.0: string view structure, basic functions for trimming, finding, substring...
@@ -183,7 +183,7 @@ size_t sv_find_substr(    sv_t sv, sv_t substr);
 #endif
 #endif
 
-#ifdef CSV_IMPLEMENTATION
+#ifdef CHOL_SV_IMPLEMENTATION
 #ifdef __cplusplus
 extern "C" {
 #endif

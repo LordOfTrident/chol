@@ -4,14 +4,14 @@
  *
  * This is an STB-style library, so to include the library implementation, you need to define
  * the implementation macro:
- *     #define CLOG_IMPLEMENTATION
+ *     #define CHOL_LOG_IMPLEMENTATION
  *
  * This library provides simple cross-platform (Windows, Unix/Linux) logging macros/functions.
  */
 
 /* Simple example of the library:
-#define CLOG_IMPLEMENTATION
-#include <clog.h>
+#define CHOL_LOG_IMPLEMENTATION
+#include <chol/log.h>
 
 int main(void) {
 	LOG_INFO("Hello, world!");
@@ -23,8 +23,8 @@ int main(void) {
 }
 */
 
-#ifndef CLOG_H_HEADER_GUARD
-#define CLOG_H_HEADER_GUARD
+#ifndef CHOL_LOG_H_HEADER_GUARD
+#define CHOL_LOG_H_HEADER_GUARD
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,9 +35,9 @@ extern "C" {
 #include <stdarg.h>  /* va_list, va_start, va_end, vsnprintf */
 #include <stdbool.h> /* bool, true, false */
 
-#define CLOG_VERSION_MAJOR 1
-#define CLOG_VERSION_MINOR 2
-#define CLOG_VERSION_PATCH 1
+#define CHOL_LOG_VERSION_MAJOR 1
+#define CHOL_LOG_VERSION_MINOR 2
+#define CHOL_LOG_VERSION_PATCH 1
 
 /*
  * 1.0.0: Basic logging functions LOG_INFO, LOG_WARN, LOG_ERROR and LOG_FATAL
@@ -117,43 +117,43 @@ void log_custom(const char *title, const char *path, size_t line, const char *fm
 #endif
 #endif
 
-#ifdef CLOG_IMPLEMENTATION
+#ifdef CHOL_LOG_IMPLEMENTATION
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 enum {
-	CLOG_COLOR_INFO = 0,
-	CLOG_COLOR_WARN,
-	CLOG_COLOR_ERROR,
-	CLOG_COLOR_FATAL,
+	CHOL_LOG_COLOR_INFO = 0,
+	CHOL_LOG_COLOR_WARN,
+	CHOL_LOG_COLOR_ERROR,
+	CHOL_LOG_COLOR_FATAL,
 };
 
 #ifdef WIN32
-#	define CLOG_RESET_COLOR      _log_color_default
-#	define CLOG_TIME_COLOR       FOREGROUND_INTENSITY
-#	define CLOG_HIGHLIGHT_COLOR (CLOG_RESET_COLOR | FOREGROUND_INTENSITY)
-#	define CLOG_MSG_COLOR       (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE)
+#	define CHOL_LOG_RESET_COLOR      _log_color_default
+#	define CHOL_LOG_TIME_COLOR       FOREGROUND_INTENSITY
+#	define CHOL_LOG_HIGHLIGHT_COLOR (CHOL_LOG_RESET_COLOR | FOREGROUND_INTENSITY)
+#	define CHOL_LOG_MSG_COLOR       (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE)
 
-static WORD _log_color_default = CLOG_MSG_COLOR;
+static WORD _log_color_default = CHOL_LOG_MSG_COLOR;
 
 static WORD _log_colors[] = {
-	/* CLOG_COLOR_INFO  */ FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
-	/* CLOG_COLOR_WARN  */ FOREGROUND_GREEN | FOREGROUND_RED  | FOREGROUND_INTENSITY,
-	/* CLOG_COLOR_ERROR */ FOREGROUND_RED   | FOREGROUND_INTENSITY,
-	/* CLOG_COLOR_FATAL */ FOREGROUND_RED   | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+	/* CHOL_LOG_COLOR_INFO  */ FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+	/* CHOL_LOG_COLOR_WARN  */ FOREGROUND_GREEN | FOREGROUND_RED  | FOREGROUND_INTENSITY,
+	/* CHOL_LOG_COLOR_ERROR */ FOREGROUND_RED   | FOREGROUND_INTENSITY,
+	/* CHOL_LOG_COLOR_FATAL */ FOREGROUND_RED   | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
 };
 #else
-#	define CLOG_RESET_COLOR     "\x1b[0m"
-#	define CLOG_TIME_COLOR      "\x1b[1;90m"
-#	define CLOG_HIGHLIGHT_COLOR "\x1b[1;97m"
-#	define CLOG_MSG_COLOR       "\x1b[0m"
+#	define CHOL_LOG_RESET_COLOR     "\x1b[0m"
+#	define CHOL_LOG_TIME_COLOR      "\x1b[1;90m"
+#	define CHOL_LOG_HIGHLIGHT_COLOR "\x1b[1;97m"
+#	define CHOL_LOG_MSG_COLOR       "\x1b[0m"
 
 static const char *_log_colors[] = {
-	/* CLOG_COLOR_INFO  */ "\x1b[1;96m",
-	/* CLOG_COLOR_WARN  */ "\x1b[1;93m",
-	/* CLOG_COLOR_ERROR */ "\x1b[1;91m",
-	/* CLOG_COLOR_FATAL */ "\x1b[1;95m",
+	/* CHOL_LOG_COLOR_INFO  */ "\x1b[1;96m",
+	/* CHOL_LOG_COLOR_WARN  */ "\x1b[1;93m",
+	/* CHOL_LOG_COLOR_ERROR */ "\x1b[1;91m",
+	/* CHOL_LOG_COLOR_FATAL */ "\x1b[1;95m",
 };
 #endif
 
@@ -173,9 +173,9 @@ static void log_reset_color(void) {
 		return;
 
 #ifdef WIN32
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), CLOG_RESET_COLOR);
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), CHOL_LOG_RESET_COLOR);
 #else
-	fprintf(_log_file, "%s", CLOG_RESET_COLOR);
+	fprintf(_log_file, "%s", CHOL_LOG_RESET_COLOR);
 #endif
 }
 
@@ -200,9 +200,9 @@ static void log_print_time(void) {
 
 	if (_log_file == stderr || _log_file == stdout)
 #ifdef WIN32
-		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), CLOG_TIME_COLOR);
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), CHOL_LOG_TIME_COLOR);
 #else
-		fprintf(_log_file, "%s", CLOG_TIME_COLOR);
+		fprintf(_log_file, "%s", CHOL_LOG_TIME_COLOR);
 #endif
 
 	fprintf(_log_file, "%02d:%02d:%02d", info->tm_hour, info->tm_min, info->tm_sec);
@@ -211,9 +211,9 @@ static void log_print_time(void) {
 
 static void log_print_loc(const char *path, size_t line) {
 #ifdef WIN32
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), CLOG_HIGHLIGHT_COLOR);
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), CHOL_LOG_HIGHLIGHT_COLOR);
 #else
-	fprintf(_log_file, "%s", CLOG_HIGHLIGHT_COLOR);
+	fprintf(_log_file, "%s", CHOL_LOG_HIGHLIGHT_COLOR);
 #endif
 	fprintf(_log_file, " %s:%zu:", path, line);
 	log_reset_color();
@@ -221,9 +221,9 @@ static void log_print_loc(const char *path, size_t line) {
 
 static void log_print_msg(const char *msg) {
 #ifdef WIN32
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), CLOG_MSG_COLOR);
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), CHOL_LOG_MSG_COLOR);
 #else
-	fprintf(_log_file, "%s", CLOG_MSG_COLOR);
+	fprintf(_log_file, "%s", CHOL_LOG_MSG_COLOR);
 #endif
 
 	fprintf(_log_file, " %s\n", msg);
@@ -260,7 +260,7 @@ void log_info(const char *path, size_t line, const char *fmt, ...) {
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 
-	log_template(CLOG_COLOR_INFO, "INFO", buf, path, line);
+	log_template(CHOL_LOG_COLOR_INFO, "INFO", buf, path, line);
 }
 
 void log_warn(const char *path, size_t line, const char *fmt, ...) {
@@ -270,7 +270,7 @@ void log_warn(const char *path, size_t line, const char *fmt, ...) {
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 
-	log_template(CLOG_COLOR_WARN, "WARN", buf, path, line);
+	log_template(CHOL_LOG_COLOR_WARN, "WARN", buf, path, line);
 }
 
 void log_error(const char *path, size_t line, const char *fmt, ...) {
@@ -280,7 +280,7 @@ void log_error(const char *path, size_t line, const char *fmt, ...) {
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 
-	log_template(CLOG_COLOR_ERROR, "ERROR", buf, path, line);
+	log_template(CHOL_LOG_COLOR_ERROR, "ERROR", buf, path, line);
 }
 
 void log_fatal(const char *path, size_t line, const char *fmt, ...) {
@@ -290,7 +290,7 @@ void log_fatal(const char *path, size_t line, const char *fmt, ...) {
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 
-	log_template(CLOG_COLOR_FATAL, "FATAL", buf, path, line);
+	log_template(CHOL_LOG_COLOR_FATAL, "FATAL", buf, path, line);
 	exit(EXIT_FAILURE);
 }
 
@@ -301,7 +301,7 @@ void log_custom(const char *title, const char *path, size_t line, const char *fm
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 
-	log_template(CLOG_COLOR_INFO, title, buf, path, line);
+	log_template(CHOL_LOG_COLOR_INFO, title, buf, path, line);
 }
 
 #ifdef __cplusplus

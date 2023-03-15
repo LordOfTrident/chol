@@ -2,8 +2,8 @@
 #include <stdlib.h> /* free, EXIT_SUCCESS */
 #include <assert.h> /* assert */
 
-#define CFS_IMPLEMENTATION
-#include <cfs.h>
+#define CHOL_FS_IMPLEMENTATION
+#include <fs.h>
 
 int main(void) {
 	char *path = FS_JOIN_PATH("this", "is", "a", "path");

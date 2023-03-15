@@ -1,8 +1,8 @@
 #include <stdio.h>  /* printf */
 #include <stdlib.h> /* EXIT_SUCCESS, EXIT_FAILURE */
 
-#define CFS_IMPLEMENTATION
-#include <cfs.h>
+#define CHOL_FS_IMPLEMENTATION
+#include <fs.h>
 
 int main(int argc, char **argv) {
 	if (argc < 3) {

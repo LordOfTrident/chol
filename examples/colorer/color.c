@@ -1,6 +1,6 @@
 #include <stdio.h> /* stdout, printf */
 
-#define COLORER_IMPLEMENTATION
+#define CHOL_COLORER_IMPLEMENTATION
 #include <colorer.h>
 
 int main(void) {
