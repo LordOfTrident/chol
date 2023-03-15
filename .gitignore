@@ -1,4 +1,5 @@
 bin
 build
+.chol_builder_cache
 .ypm/*.hash
 .ypm/*.o
