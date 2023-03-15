@@ -21,7 +21,7 @@ extern "C" {
 #include <string.h> /* memset, strlen, strcpy */
 
 #define CHOL_COMMON_VERSION_MAJOR 1
-#define CHOL_COMMON_VERSION_MINOR 0
+#define CHOL_COMMON_VERSION_MINOR 3
 #define CHOL_COMMON_VERSION_PATCH 2
 
 /*
@@ -30,6 +30,7 @@ extern "C" {
  * 1.0.2: Fix C++ errors
  * 1.1.2: Add ZERO_STRUCT
  * 1.2.2: Add strcpy_to_heap
+ * 1.3.2: Add collision_free_hash
  */
 
 #define UNREACHABLE(MSG)      assert(0 && "Unreachable: " MSG)
@@ -89,8 +90,8 @@ extern "C" {
  *
  * FOREACH_IN_ARRAY(ARR, TYPE, SIZE, VAR, BODY)
  *     Loops through each element in array 'ARR' of size 'SIZE'. 'VAR' is the name of the element
- *     pointer variable, which is of type void* and 'BODY' is the code to run on each element.
- *     Example:
+ *     pointer variable, which is of type pointer to 'TYPE' and 'BODY' is the code to run on each
+ *     iteration. Example:
  *         | int numbers[] = {1, 5, 4, 2};
  *         | FOREACH_IN_ARRAY(numbers, int, ARRAY_SIZE(numbers), number, {
  *         |     printf("%i\n", *number);
@@ -117,7 +118,8 @@ extern "C" {
 #define SREALLOC(PTR, COUNT)     srealloc((void**)&(PTR), sizeof(*PTR), COUNT)
 #define SFREE(PTR)               sfree((void**)&(PTR))
 
-char *strcpy_to_heap(const char *str);
+unsigned collision_free_hash(const char *key);
+char    *strcpy_to_heap(     const char *str);
 
 /*
  * ZERO_STRUCT(STRUCT)
@@ -146,6 +148,10 @@ char *strcpy_to_heap(const char *str);
  *         | if (SFREE(numbers) != 0)
  *         |     UNREACHABLE("'numbers' is NULL");
  *
+ * unsigned collision_free_hash(const char *key);
+ *     Collision-free hash function from an article in Dr. Dobbs Journal. Hashes the string 'key'
+ *     and returns the hash value.
+ *
  * char *strcpy_to_heap(const char *str)
  *     Copies the string 'str' into a heap-allocated buffer and returns a pointer to it. On
  *     allocation fail, NULL is returned.
@@ -164,6 +170,21 @@ int   sfree(void **ptr);
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* Collision-free hash function from an article in Dr. Dobbs Journal */
+unsigned collision_free_hash(const char *key) {
+	unsigned hash = 0;
+	for (size_t i = 0; i < strlen(key); ++ i) {
+		hash += (unsigned)key[i];
+		hash += (hash << 10);
+		hash ^= (hash >> 6);
+	}
+
+	hash += (hash << 3);
+	hash ^= (hash >> 11);
+	hash += (hash << 15);
+	return hash;
+}
 
 char *strcpy_to_heap(const char *str) {
 	char *copy = (char*)malloc(strlen(str) + 1);

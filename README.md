@@ -73,10 +73,11 @@ Table of what platforms the given library was tested on and worked
 | [builder.h](./builder.h)  | Yes           | Yes             | Not tested   | Not tested    |
 | [fs.h](./fs.h)            | Yes           | Yes             | Not tested   | Not tested    |
 | [log.h](./log.h)          | Yes           | Yes             | Not tested   | Not tested    |
-| [sv.h](./sv.h)            | Yes           | Yes             | Not tested   | Not tested    |
-| [args.h](./args.h)        | Yes           | Yes             | Not tested   | Not tested    |
-| [common.h](./common.h)    | Yes           | Yes             | Not tested   | Not tested    |
+| [sv.h](./sv.h)            | Yes           | Yes             | Yes          | Yes           |
+| [args.h](./args.h)        | Yes           | Yes             | Yes          | Yes           |
+| [common.h](./common.h)    | Yes           | Yes             | Yes          | Yes           |
 | [colorer.h](./colorer.h)  | Yes           | Yes             | Not tested   | Not tested    |
+| [darray.h](./darray.h)    | Yes           | Yes             | Yes          | Yes           |
 
 ## Bugs
 If you find any bugs, please create an issue and report them.
