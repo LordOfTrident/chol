@@ -224,7 +224,7 @@ typedef struct {
 	bool rebuild_all;
 } build_app_config_t;
 
-void build_app(const char *compiler, build_app_config_t *config);
+void build_app(const char *compiler, build_app_config_t *config, build_cache_t *c);
 
 /*
  * build_app_config_t
