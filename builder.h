@@ -50,7 +50,7 @@ extern "C" {
 #include "common.h"
 
 #define CHOL_BUILDER_VERSION_MAJOR 1
-#define CHOL_BUILDER_VERSION_MINOR 7
+#define CHOL_BUILDER_VERSION_MINOR 8
 #define CHOL_BUILDER_VERSION_PATCH 4
 
 /*
@@ -67,6 +67,8 @@ extern "C" {
  * 1.5.4: Fix CMD signature
  * 1.6.4: Add Windows support for cmd
  * 1.7.4: Rename build_multi_src_app to build_app, add build_app_config_t
+ * 1.8.4: Added rebuild_all field to build_app_config_t, add build_cache_t optional parameter to
+ *        build_app
  */
 
 #if defined(WIN32)
@@ -218,6 +220,8 @@ typedef struct {
 
 	const char **srcs;
 	size_t       srcs_count;
+
+	bool rebuild_all;
 } build_app_config_t;
 
 void build_app(const char *compiler, build_app_config_t *config);
@@ -238,6 +242,8 @@ void build_app(const char *compiler, build_app_config_t *config);
  *         Source files to compile
  *     size_t srcs_count
  *         Count of elements in 'srcs'
+ *     bool rebuild_all
+ *         Rebuild all source files
  *
  * STRING_ARRAY
  *     Embed file as a string array (const char*[])
@@ -255,7 +261,7 @@ void build_app(const char *compiler, build_app_config_t *config);
  * void build_clean(const char *path)
  *     Function for common cleaning functionality. Cleans all .o files from directory 'path'.
  *
- * void build_app(const char *compiler, build_app_config_t *config)
+ * void build_app(const char *compiler, build_app_config_t *config, build_cache_t *c)
  *     A wrapper to provide common build.c functionality in a single function call. Example:
  *         | const char *srcs[] = {"main.c", "test.c"};
  *         | build_app_config_t config = {
@@ -263,7 +269,7 @@ void build_app(const char *compiler, build_app_config_t *config);
  *         |     .bin = BIN, .out = BIN"/"OUT,
  *         |     .srcs = srcs, .srcs_count = sizeof(srcs) / sizeof(srcs[0]),
  *         | };
- *         | built_app(cc, &config);
+ *         | built_app(cc, &config, NULL);
  *
  *     This function also takes "extra parameters" from the 'CARGS' and 'CLIBS' macros. 'CARGS' are
  *     the extra arguments to run on compilation, and 'CLIBS' are the library linking arguments.
@@ -717,18 +723,22 @@ static char *build_file(const char *cc, build_cache_t *c, const char *out_dir, c
 	return out;
 }
 
-void build_app(const char *compiler, build_app_config_t *config) {
+void build_app(const char *compiler, build_app_config_t *config, build_cache_t *c) {
 	if (!fs_exists(config->bin))
 		fs_create_dir(config->bin);
 
 	char  *o_files[128];
 	size_t o_files_count = 0;
 
-	build_cache_t c;
-	if (build_cache_load(&c) != 0)
-		LOG_FATAL("Build cache is corrupted");
+	build_cache_t c_;
+	bool create_build_cache_struct = c == NULL;
+	if (create_build_cache_struct) {
+		if (build_cache_load(&c_) != 0)
+			LOG_FATAL("Build cache is corrupted");
+		c = &c_;
+	}
 
-	bool rebuild_all = false;
+	bool rebuild_all = config->rebuild_all;
 
 	/* Compile files in all source directories */
 	for (size_t i = 0; i < config->srcs_count; ++ i) {
@@ -743,7 +753,7 @@ void build_app(const char *compiler, build_app_config_t *config) {
 			if (src == NULL)
 				FATAL_FUNC_FAIL("malloc");
 
-			int64_t m_cached = build_cache_get(&c, src);
+			int64_t m_cached = build_cache_get(c, src);
 			int64_t m_now;
 			if (fs_time(src, &m_now, NULL) != 0)
 				LOG_FATAL("Could not get last modified time of '%s'", src);
@@ -752,7 +762,7 @@ void build_app(const char *compiler, build_app_config_t *config) {
 				if (!rebuild_all)
 					rebuild_all = true;
 
-				build_cache_set(&c, src, m_now);
+				build_cache_set(c, src, m_now);
 			}
 
 			free(src);
@@ -768,7 +778,7 @@ void build_app(const char *compiler, build_app_config_t *config) {
 
 			assert(o_files_count < sizeof(o_files) / sizeof(o_files[0]));
 
-			char *out = build_file(compiler, &c, config->bin, config->srcs[i],
+			char *out = build_file(compiler, c, config->bin, config->srcs[i],
 			                       ent.name, rebuild_all);
 			o_files[o_files_count ++] = out;
 		}, status);
@@ -780,7 +790,7 @@ void build_app(const char *compiler, build_app_config_t *config) {
 	if (o_files_count == 0)
 		LOG_INFO("Nothing to rebuild");
 	else {
-		if (build_cache_save(&c) != 0)
+		if (build_cache_save(c) != 0)
 			LOG_FATAL("Failed to save build cache");
 
 		COMPILE(compiler, o_files, o_files_count, "-o", config->out, CARGS, CLIBS);
@@ -789,7 +799,8 @@ void build_app(const char *compiler, build_app_config_t *config) {
 			free(o_files[i]);
 	}
 
-	build_cache_free(&c);
+	if (create_build_cache_struct)
+		build_cache_free(c);
 }
 
 #ifdef __cplusplus
