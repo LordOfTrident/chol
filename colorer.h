@@ -52,7 +52,7 @@ extern "C" {
 #endif
 
 #ifdef WIN32
-#	include "chol_sys.h"
+#	include "sys.h"
 #else
 #	include <stdio.h> /* stdout, stderr, fputs */
 #endif
