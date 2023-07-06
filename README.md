@@ -1,3 +1,5 @@
+# !This project has been moved to [noch](https://github.com/LordOfTrident/noch)!
+
 <p align="center">
 	<img width="300px" src="./res/logo.png">
 </p>
